@@ -166,6 +166,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Content Rendering ---
+    function applyCategoryFilter() {
+        // Filter folders based on hierarchy and current category (if at root)
+        let filteredFolders = allFolders.filter(f => {
+            if (currentParentId === 'root') {
+                return (!f.parentId) && (f.category === currentCategory);
+            } else {
+                return f.parentId === currentParentId;
+            }
+        });
+
+        // Use the integrated renderer to show both folders and current image list
+        renderIntegratedContent(filteredFolders);
+    }
+
     function renderIntegratedContent(folders) {
         integratedGrid.innerHTML = '';
         
