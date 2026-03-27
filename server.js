@@ -181,7 +181,12 @@ app.post('/api/folders/:id/images', async (req, res) => {
     try {
         const { data: folder, error: fErr } = await supabase.from('folders').select('*').eq('id', folderId).single();
         if (fErr || !folder) throw new Error('Stack not found');
-        if (folder.password && folder.password !== password) return res.status(401).json({ success: false, msg: 'Incorrect password' });
+        
+        // Admin Access Bypass: If Admin Password is provided, ignore folder password
+        const isAdmin = req.body.adminPassword === '222879';
+        if (!isAdmin && folder.password && folder.password !== password) {
+            return res.status(401).json({ success: false, msg: 'Incorrect password' });
+        }
 
         const { data: images, error: iErr } = await supabase.from('images').select('*').eq('folderId', folderId);
         if (iErr) throw iErr;
