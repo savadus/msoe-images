@@ -1150,7 +1150,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 5. Submit Multiple Bulk Uploads
+    // 5. Submit Multiple Bulk Uploads (Direct-to-Cloud Bypass)
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (imageInput.files.length === 0) {
@@ -1158,39 +1158,59 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const formData = new FormData();
-        formData.append('folderId', activeUploadFolderId);
-        formData.append('password', sessionPassword);
-        
-        // Loop over potentially thousands of files recursively pushing to form payload
-        for (let i = 0; i < imageInput.files.length; i++) {
-            formData.append('images', imageInput.files[i]);
-        }
-
         const originalBtnText = uploadSubmitBtn.innerHTML;
-        uploadSubmitBtn.innerHTML = '<ion-icon name="sync" class="fade-in" style="animation: spin 1s linear infinite;"></ion-icon> Processing...';
+        uploadSubmitBtn.innerHTML = '<ion-icon name="sync" class="fade-in" style="animation: spin 1s linear infinite;"></ion-icon> Cloud Syncing...';
         uploadSubmitBtn.disabled = true;
 
         try {
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
+            showMsg(uploadStatusMessage, 'Connecting to Cloud Network...', 'success');
+            
+            // 1. Get Cloudinary Details
+            const configRes = await fetch('/api/cloudinary-config');
+            const config = await configRes.json();
+            if (!config.cloudName) throw new Error('Cloudinary not configured');
 
-            if (response.ok && data.success) {
-                showMsg(uploadStatusMessage, data.msg || 'Massive batch loaded successfully!', 'success');
-                uploadForm.reset();
-                previewContainer.style.display = 'none';
-                if (adminImagesView.style.display === 'block') {
-                    loadFolderImagesAdmin(activeUploadFolderId, adminFolderTitle.textContent);
+            let successCount = 0;
+            const files = Array.from(imageInput.files);
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                showMsg(uploadStatusMessage, `Cloud Syncing: ${i+1}/${files.length} (${file.name})`, 'success');
+
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', config.uploadPreset);
+                formData.append('folder', `msoe-images/${activeUploadFolderId}`);
+
+                const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${config.cloudName}/auto/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const cloudData = await cloudRes.json();
+
+                if (cloudData.secure_url) {
+                    await fetch('/api/image-metadata', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            adminPassword: sessionPassword,
+                            folderId: activeUploadFolderId,
+                            name: file.name,
+                            url: cloudData.secure_url,
+                            publicId: cloudData.public_id
+                        })
+                    });
+                    successCount++;
                 }
-                setTimeout(() => { uploadModal.style.display = 'none'; }, 2000);
-            } else {
-                showMsg(uploadStatusMessage, data.msg || 'Payload failure - ensure bounds!', 'error');
             }
-        } catch (error) {
-            showMsg(uploadStatusMessage, 'Network stream broke.', 'error');
+
+            uploadStatusMessage.style.display = 'none';
+            uploadModal.style.display = 'none';
+            showSuccessModal(`Successfully Published ${successCount} files!`);
+            loadFolderImagesAdmin(activeUploadFolderId, navigationPath[navigationPath.length-1].name);
+        } catch (err) {
+            console.error('Cloud upload error:', err);
+            showMsg(uploadStatusMessage, 'Cloud Error: ' + err.message, 'error');
         } finally {
             uploadSubmitBtn.innerHTML = originalBtnText;
             uploadSubmitBtn.disabled = false;
