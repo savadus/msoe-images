@@ -439,14 +439,16 @@
             <div style="background: rgba(58, 167, 255, 0.1); color: var(--accent-color); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">
                 <ion-icon name="create-outline"></ion-icon>
             </div>
-            <h2 style="margin-bottom: 0.5rem; font-size: 1.5rem; color: #fff;">Rename Folder</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Enter a new name for this stack.</p>
+            <h2 style="margin-bottom: 0.5rem; font-size: 1.5rem; color: #fff;">Rename & Secure</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Update stack name or add/change password security.</p>
             
-            <input type="text" id="renameFolderNameInput" placeholder="New Folder Name" style="width: 100%; padding: 1rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; margin-bottom: 2rem; font-size: 1rem; outline: none;">
+            <input type="text" id="renameFolderNameInput" placeholder="New Folder Name" style="width: 100%; padding: 1rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; margin-bottom: 1rem; font-size: 1rem; outline: none;">
             
+            <input type="password" id="renameFolderPassInput" placeholder="Stack Password (Leave blank for none)" style="width: 100%; padding: 1rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; margin-bottom: 2rem; font-size: 1rem; outline: none;">
+
             <div style="display: flex; gap: 1rem;">
                 <button id="renameFolderCancelBtn" class="btn btn-cancel" style="flex: 1;">Cancel</button>
-                <button id="renameFolderConfirmBtn" class="btn btn-primary" style="flex: 1;">Rename</button>
+                <button id="renameFolderConfirmBtn" class="btn btn-primary" style="flex: 1;">Update</button>
             </div>
         </div>
     </div>

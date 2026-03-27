@@ -228,8 +228,14 @@ app.post('/api/folders/:id/pin', async (req, res) => {
 
 app.post('/api/folders/:id/rename', async (req, res) => {
     if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    const { newName, newPassword } = req.body;
     try {
-        const { error } = await supabase.from('folders').update({ name: req.body.newName }).eq('id', req.params.id);
+        const updateData = {};
+        if (newName) updateData.name = newName;
+        // If newPassword is provided (even an empty string), update it.
+        if (typeof newPassword !== 'undefined') updateData.password = newPassword;
+
+        const { error } = await supabase.from('folders').update(updateData).eq('id', req.params.id);
         if (error) throw error;
         res.json({ success: true });
     } catch (err) { res.status(500).json({ success: false, msg: err.message }); }

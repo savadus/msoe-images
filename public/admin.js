@@ -907,31 +907,33 @@ document.addEventListener('DOMContentLoaded', () => {
         moveFolderModal.style.display = 'none';
     });
 
-    // --- Rename Folder Logic ---
+    // --- Rename & Secure Folder Logic ---
     function showRenameModal(folder) {
         folderToRename = folder;
         renameFolderNameInput.value = folder.name;
+        renameFolderPassInput.value = ''; // Always clear for security/clarity
         renameFolderModal.style.display = 'flex';
         renameFolderNameInput.focus();
     }
 
-    async function renameFolder(folderId, newName) {
+    async function renameFolder(folderId, newName, newPassword) {
         try {
             const res = await fetch(`/api/folders/${folderId}/rename`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     adminPassword: sessionPassword, 
-                    newName: newName 
+                    newName: newName,
+                    newPassword: newPassword // Can be empty string to remove password
                 })
             });
             const data = await res.json();
             if (data.success) {
                 renameFolderModal.style.display = 'none';
-                showSuccessModal('Folder successfully renamed!');
+                showSuccessModal('Stack security & name updated!');
                 loadFoldersAdmin();
             } else {
-                showCustomAlert('Rename Failed', data.msg || 'Error renaming folder', { icon: 'alert-circle-outline' });
+                showCustomAlert('Update Failed', data.msg || 'Error updating folder', { icon: 'alert-circle-outline' });
             }
         } catch(e) {
             console.error('Rename error', e);
@@ -941,8 +943,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renameFolderConfirmBtn.addEventListener('click', () => {
         const newName = renameFolderNameInput.value;
+        const newPassword = renameFolderPassInput.value;
         if (newName && folderToRename) {
-            renameFolder(folderToRename.id, newName);
+            renameFolder(folderToRename.id, newName, newPassword);
         }
     });
 
