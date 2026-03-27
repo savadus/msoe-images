@@ -71,9 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (currentCategory === 'posters') {
             // Special: If we are at root of posters, check if we need to load direct posters
             const magicFolder = allFolders.find(f => f.name === '__POSTER_ROOT__' && f.category === 'posters');
-            if (magicFolder && currentImagesList.length === 0) {
-                // This is first load of root posters, fetch them
-                loadContent(magicFolder.id, '');
+            if (magicFolder && currentImagesList.length === 0 && !window.isFetchingPosters) {
+                // This is first load of root posters, fetch them in background
+                window.isFetchingPosters = true;
+                loadContent(magicFolder.id, '', true).then(() => {
+                    window.isFetchingPosters = false;
+                    renderGallery(currentImagesList); 
+                });
             } else if (currentImagesList.length > 0) {
                 renderGallery(currentImagesList);
             }
@@ -188,34 +192,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function attemptAuthAndNavigate(folder, password) {
-        showLoader(true);
+    async function loadContent(folderId, password, skipNavigate = false) {
+        if (!skipNavigate) showLoader(true);
         try {
-            const res = await fetch(`/api/folders/${folder.id}/images`, {
+            const res = await fetch(`/api/folders/${folderId}/images`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ password })
             });
             const data = await res.json();
             if (data.success) {
-                // 1. Instantly Update State
                 currentImagesList = data.images;
-                navigationPath.push({ id: folder.id, name: folder.name, password });
-                currentParentId = folder.id;
-
-                // 2. Hide Modal Immediately
-                passwordModal.style.display = 'none';
-
-                // 3. Render Content Without Second Fetch
-                applyMasterFilter();
+                if (!skipNavigate) {
+                    currentParentId = folderId;
+                    passwordModal.style.display = 'none';
+                    applyMasterFilter();
+                }
             } else {
-                folderAuthError.style.display = 'block';
+                if (!skipNavigate) {
+                    folderAuthError.textContent = data.msg || 'Auth Failed';
+                    folderAuthError.style.display = 'block';
+                }
             }
         } catch (e) {
-             console.error(e);
+            console.error('Load Error', e);
         } finally {
-            showLoader(false);
+            if (!skipNavigate) showLoader(false);
         }
+    }
+
+    async function attemptAuthAndNavigate(folder, password) {
+        // Authenticate & move path before loading
+        navigationPath.push({ id: folder.id, name: folder.name, password });
+        await loadContent(folder.id, password);
     }
 
     async function navigate(index) {
