@@ -13,15 +13,27 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
 
-// Ensure uploads directory exists
+// Ensure uploads directory exists (Handling read-only environments like Vercel)
 const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+try {
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+} catch (e) {
+    console.warn('Warning: Could not create uploads directory (Read-only environment or permissions).');
+}
 
 const foldersFile = path.join(uploadDir, 'folders.json');
-if (!fs.existsSync(foldersFile)) fs.writeFileSync(foldersFile, JSON.stringify([]));
+try {
+    if (!fs.existsSync(foldersFile)) fs.writeFileSync(foldersFile, JSON.stringify([]));
+} catch (e) {
+    console.warn('Warning: Could not initialize folders.json.');
+}
 
 const chatFile = path.join(uploadDir, 'chat.json');
-if (!fs.existsSync(chatFile)) fs.writeFileSync(chatFile, JSON.stringify([]));
+try {
+    if (!fs.existsSync(chatFile)) fs.writeFileSync(chatFile, JSON.stringify([]));
+} catch (e) {
+    console.warn('Warning: Could not initialize chat.json.');
+}
 
 function getFolders() {
     try {
