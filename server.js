@@ -8,9 +8,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
+const isVercel = process.env.VERCEL || process.env.NODE_ENV === 'production';
+const baseStorageDir = isVercel ? '/tmp' : __dirname;
+const uploadDir = path.join(baseStorageDir, 'uploads');
+
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(uploadDir));
 app.use(express.json());
 
 // --- Vercel Compatibility Layer (/tmp storage) ---
