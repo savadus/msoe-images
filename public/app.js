@@ -161,8 +161,14 @@ document.addEventListener('DOMContentLoaded', () => {
             passwordModal.style.display = 'flex';
             setTimeout(() => folderPasswordInput.focus(), 100);
             
-            submitFolderPasswordBtn.onclick = async () => {
-                await attemptAuthAndNavigate(folder, folderPasswordInput.value);
+            const handleAuth = async () => {
+                const pass = folderPasswordInput.value;
+                if (pass) await attemptAuthAndNavigate(folder, pass);
+            };
+
+            submitFolderPasswordBtn.onclick = handleAuth;
+            folderPasswordInput.onkeydown = (e) => {
+                if (e.key === 'Enter') handleAuth();
             };
         } else {
             navigationPath.push({ id: folder.id, name: folder.name });
