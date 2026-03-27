@@ -18,10 +18,6 @@ app.use('/uploads', express.static(uploadDir));
 app.use(express.json());
 
 // --- Vercel Compatibility Layer (/tmp storage) ---
-const isVercel = process.env.VERCEL || process.env.NODE_ENV === 'production';
-const baseStorageDir = isVercel ? '/tmp' : __dirname;
-const uploadDir = path.join(baseStorageDir, 'uploads');
-
 // Ensure base directories exist
 try {
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -62,8 +58,8 @@ function saveChats(chats) {
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const folderId = req.body.folderId || 'default';
-        const dest = path.join('./uploads', folderId);
-        if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+        const dest = path.join(uploadDir, folderId);
+        if (!fs.existsSync(dest)) try { fs.mkdirSync(dest, { recursive: true }); } catch(e){}
         cb(null, dest);
     },
     filename: function (req, file, cb) {
@@ -102,6 +98,11 @@ app.post('/api/folders', (req, res) => {
     };
     folders.push(newFolder);
     saveFolders(folders);
+    
+    // Create physical dir
+    const dir = path.join(uploadDir, newFolder.id);
+    if (!fs.existsSync(dir)) try { fs.mkdirSync(dir, { recursive: true }); } catch(e){}
+    
     res.json({ success: true, folder: newFolder });
 });
 
@@ -152,6 +153,11 @@ app.post('/api/folders/:id/move', (req, res) => {
     res.json({ success: true, folder });
 });
 
+// Admin: Mark all folders as read/sync (for UI refresh)
+app.post('/api/folders/sync', (req, res) => {
+    res.json({ success: true });
+});
+
 // Public: Get all folders with file counts
 app.get('/api/folders', (req, res) => {
     console.log(`[API] GET /api/folders called by ${req.ip}`);
@@ -165,7 +171,7 @@ app.get('/api/folders', (req, res) => {
         return b.createdAt - a.createdAt;
     });
     res.json({ success: true, folders: sorted.map(f => {
-        const folderPath = path.join(__dirname, 'uploads', f.id);
+        const folderPath = path.join(uploadDir, f.id);
         let count = 0;
         if (fs.existsSync(folderPath)) {
             count = fs.readdirSync(folderPath).filter(file => !file.startsWith('.')).length;
@@ -204,7 +210,7 @@ app.post('/api/folders/:id/images', (req, res) => {
     if (!folder) return res.status(404).json({ success: false, msg: 'Folder not found' });
     if (folder.password && folder.password !== password) return res.status(401).json({ success: false, msg: 'Incorrect password' });
     
-    const folderPath = path.join(__dirname, 'uploads', folderId);
+    const folderPath = path.join(uploadDir, folderId);
     if (!fs.existsSync(folderPath)) return res.json({ success: true, images: [], folderName: folder.name });
     
     const files = fs.readdirSync(folderPath).filter(f => !f.startsWith('.'));
@@ -240,13 +246,11 @@ app.post('/api/admin/chat/mark-viewed', (req, res) => {
     const { adminPassword, chatId } = req.body;
     if (adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
     
-    let chats = JSON.parse(fs.readFileSync(chatFile));
-    chats = chats.map(c => ({ viewed: false, ...c }));
-
+    let chats = getChats();
     const chatIndex = chats.findIndex(c => c.id == chatId);
     if (chatIndex !== -1) {
         chats[chatIndex].viewed = true;
-        fs.writeFileSync(chatFile, JSON.stringify(chats, null, 2));
+        saveChats(chats);
         res.json({ success: true });
     } else {
         res.status(404).json({ success: false, msg: 'Chat not found' });
@@ -259,7 +263,7 @@ app.delete('/api/images', (req, res) => {
     if (adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
     if (!folderId || !filename) return res.status(400).json({ success: false, msg: 'Missing info' });
     
-    const filePath = path.join(__dirname, 'uploads', folderId, filename);
+    const filePath = path.join(uploadDir, folderId, filename);
     if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
         res.json({ success: true, msg: 'Image deleted' });
@@ -280,26 +284,22 @@ app.delete('/api/folders/:id', (req, res) => {
         const folderIndex = folders.findIndex(f => f.id === id);
         if (folderIndex === -1) return res.status(404).json({ success: false, msg: 'Folder not found' });
         
-        const folderName = folders[folderIndex].name;
+        const folderId = folders[folderIndex].id;
         folders.splice(folderIndex, 1);
         saveFolders(folders);
         
-        const folderPath = path.join(__dirname, 'uploads', id);
+        const folderPath = path.join(uploadDir, folderId);
         if (fs.existsSync(folderPath)) {
             fs.rmSync(folderPath, { recursive: true, force: true });
         }
-        res.json({ success: true, msg: `"${folderName}" deleted.` });
-    } catch (error) {
-        res.status(500).json({ success: false, msg: 'Server error during deletion' });
+        res.json({ success: true, msg: 'Folder and contents deleted' });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ success: false, msg: 'Server error' });
     }
 });
 
-// Admin: Get all chats
-app.post('/api/admin/chat', (req, res) => {
-    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
-    const chats = JSON.parse(fs.readFileSync(chatFile));
-    const normalized = chats.map(c => ({ viewed: false, ...c }));
-    res.json({ success: true, chats: normalized.reverse() });
+// Start Server
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running at http://0.0.0.0:${PORT}`);
 });
-
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
