@@ -10,15 +10,35 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // --- CLOUD CONFIGURATION ---
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const requiredKeys = [
+    'SUPABASE_URL', 
+    'SUPABASE_SERVICE_ROLE_KEY', 
+    'CLOUDINARY_CLOUD_NAME', 
+    'CLOUDINARY_API_KEY', 
+    'CLOUDINARY_API_SECRET'
+];
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+requiredKeys.forEach(key => {
+    if (!process.env[key]) {
+        console.error(`CRITICAL: Missing environment variable ${key}`);
+    }
 });
+
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+let supabase = null;
+
+if (supabaseUrl && supabaseKey) {
+    supabase = createClient(supabaseUrl, supabaseKey);
+}
+
+if (process.env.CLOUDINARY_CLOUD_NAME) {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET
+    });
+}
 
 // --- MIDDLEWARE ---
 app.use(cors());
