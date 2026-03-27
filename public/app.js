@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
             applyCategoryFilter();
         } else {
             if (pageMainSubtitle) pageMainSubtitle.style.display = 'none';
-            await loadIntegratedContent(item.id, '');
+            await loadIntegratedContent(item.id, item.password || '');
         }
     }
 
@@ -293,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (data.success) {
                 passwordModal.style.display = 'none';
-                navigationPath.push({ id: folder.id, name: folder.name });
+                navigationPath.push({ id: folder.id, name: folder.name, password: password });
                 navigate(navigationPath.length - 1);
             } else {
                 folderAuthError.style.display = 'block';
