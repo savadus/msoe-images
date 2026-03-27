@@ -1,0 +1,6 @@
+# Ignore heavy local uploads during build
+uploads/
+node_modules/
+.git/
+*.mp4
+*.zip

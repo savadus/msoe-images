@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRO ENTRY | Msoe Clicks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.cdnfonts.com/css/avillia" rel="stylesheet">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+</head>
+
+<body class="dark-theme">
+    <script>
+        // Always force Dark Mode when initially loading the admin page
+        document.body.classList.remove('light-theme');
+        if (!document.body.classList.contains('dark-theme')) {
+            document.body.classList.add('dark-theme');
+        }
+        localStorage.setItem('theme', 'dark');
+    </script>
+    <!-- Biometric Scanning Overlay -->
+    <div id="biometricScanOverlay" class="biometric-scan-overlay">
+        <div class="scanner-container">
+            <div class="scanner-line"></div>
+            <ion-icon name="finger-print" class="scanner-fingerprint"></ion-icon>
+        </div>
+        <div class="scanner-text">Scanning Biometrics...</div>
+        <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">Touch your sensor to unlock</p>
+    </div>
+
+    <header>
+        <a href="/" class="logo">
+            <img src="header-logo-dark.png" alt="Logo" class="header-logo-dark">
+            <img src="header-logo-light.png" alt="Logo" class="header-logo-light">
+        </a>
+        <div class="header-right-logo">
+            <img src="right-logo-dark.png" alt="Academy Logo" class="logo-dark">
+            <img src="right-logo-light.png" alt="Academy Logo" class="logo-light">
+        </div>
+    </header>
+
+    <!-- Category navigation removed from admin -->
+
+    <main>
+        <div class="fade-in" style="text-align: center; margin-top: 2.5rem; margin-bottom: 3.5rem;">
+            <h1 style="margin-bottom: 1.2rem;">PRO ENTRY</h1>
+            <a href="gallery.html" class="btn btn-secondary"
+                style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.4rem; font-size: 0.9rem; border-radius: 50px; background: rgba(255,255,255,0.05); color: var(--text-secondary); border: 1px solid var(--border-color); text-decoration: none; transition: all 0.3s ease;">
+                <ion-icon name="arrow-back-outline"></ion-icon> Back to Gallery
+            </a>
+        </div>
+
+        <!-- Auth Wall -->
+        <div class="auth-container fade-in" id="authContainer"
+            style="max-width: 400px; margin: 4rem auto; background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 2.5rem; text-align: center; box-shadow: var(--shadow-md); position: relative; overflow: hidden; min-height: 350px; display: flex; flex-direction: column; justify-content: center;">
+
+            <!-- View 1: Selection -->
+            <div id="authSelectionView" class="fade-in">
+                <ion-icon name="shield-checkmark-outline"
+                    style="font-size: 3rem; color: var(--accent-color); margin-bottom: 2rem;"></ion-icon>
+                <h2 style="margin-bottom: 2.5rem;">Admin Unlock</h2>
+                <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 1rem;">
+                    <!-- Lock Button -->
+                    <div style="text-align: center;">
+                        <button id="selectPasswordBtn" class="btn-icon"
+                            style="width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.05); color: #fff; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; box-shadow: var(--shadow-sm);">
+                            <ion-icon name="lock-closed-outline"></ion-icon>
+                        </button>
+                        <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-secondary);">Password</p>
+                    </div>
+                    <!-- Fingerprint Button (Selection Mode) -->
+                    <div id="biometricSelectionOption" style="text-align: center; display: none;">
+                        <button id="selectFingerprintBtn" class="btn-icon"
+                            style="width: 80px; height: 80px; border-radius: 50%; background: rgba(88, 166, 255, 0.1); color: var(--accent-color); font-size: 2.5rem; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(88,166,255,0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; box-shadow: 0 0 20px rgba(88,166,255,0.15);">
+                            <ion-icon name="finger-print-outline"></ion-icon>
+                        </button>
+                        <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--accent-color); font-weight: 500;">
+                            Touch ID</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View 2: Password Entry -->
+            <div id="passwordEntryView" style="display: none;" class="fade-in">
+                <button id="backToSelectionBtn" class="btn-icon"
+                    style="position: absolute; top: 1.5rem; left: 1.5rem; background: transparent; color: var(--text-secondary); font-size: 1.5rem; border: none; cursor: pointer;">
+                    <ion-icon name="arrow-back-outline"></ion-icon>
+                </button>
+                <ion-icon name="key-outline"
+                    style="font-size: 3rem; color: var(--accent-color); margin-bottom: 1rem;"></ion-icon>
+                <h2 style="margin-bottom: 1.5rem;">Enter Code</h2>
+                <input type="password" id="passwordInput" placeholder="••••••••"
+                    style="width: 100%; padding: 1rem; margin-bottom: 0.5rem; border-radius: 12px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.3); color: white; text-align: center; font-size: 1.2rem; letter-spacing: 4px;">
+                <div id="authError" style="color: #ff7b72; margin-top: 1rem; display: none;">Incorrect password</div>
+            </div>
+
+        </div>
+
+        <!-- Dashboard Setup -->
+        <div id="mainDashboard" style="display: none;" class="fade-in">
+            <!-- Biometric Setup Promo -->
+            <div id="biometricSetupPromo" class="glass-morphism"
+                style="margin-bottom: 2rem; padding: 1.2rem; display: none; align-items: center; justify-content: space-between; border: 1px solid rgba(88, 166, 255, 0.3); background: rgba(88, 166, 255, 0.05);">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <ion-icon name="finger-print" style="font-size: 2rem; color: var(--accent-color);"></ion-icon>
+                    <div>
+                        <h4 style="margin: 0; color: #fff;">Enable Fingerprint Login?</h4>
+                        <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">Unlock this dashboard
+                            faster on this device.</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button id="skipBiometricBtn" class="btn btn-secondary"
+                        style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Maybe later</button>
+                    <button id="enableBiometricBtn" class="btn btn-primary"
+                        style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Enable Now</button>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="admin-tabs"
+                style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                <button id="tabStacksBtn" class="btn btn-primary">Manage Stacks</button>
+                <button id="tabFeedbackBtn" class="btn"
+                    style="background: transparent; color: var(--text-secondary);">User Feedback Logs</button>
+            </div>
+
+            <!-- Tab 1: Stacks View -->
+            <div id="stacksView">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <h2 style="margin: 0;"><ion-icon name="layers-outline"
+                            style="vertical-align: middle; margin-right: 0.5rem;"></ion-icon> Stacks</h2>
+                    <div style="display: flex; gap: 0.8rem; align-items: center;">
+                        <button id="mainActionBtn" class="btn btn-primary" style="font-size: 1.2rem; padding: 0.5rem 1.2rem; border-radius: 20px; display: flex; align-items: center; gap: 0.5rem;">
+                            <ion-icon name="add-circle-outline"></ion-icon> <span>Action</span>
+                        </button>
+                        <button class="btn btn-secondary cycle-view-btn" data-target="adminFoldersGrid"
+                            title="Toggle Grid View" style="font-size: 1.25rem; padding: 0.4rem 0.6rem;"><ion-icon
+                                name="apps-outline"></ion-icon></button>
+                    </div>
+                </div>
+
+                <!-- Breadcrumbs -->
+                <nav id="adminBreadcrumbs"
+                    style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                    <span class="breadcrumb-item" data-id="root"
+                        style="cursor: pointer; color: var(--accent-color); font-weight: 500;">Home</span>
+                </nav>
+
+                <input type="file" id="folderUploadInput" webkitdirectory directory multiple accept="image/*,video/*"
+                    style="display: none;">
+                <div id="adminFoldersGrid" class="gallery grid-view-list" style="gap: 1.5rem; margin-bottom: 3rem;">
+                    <!-- Create Folder Card Button -->
+                    <div id="createFolderCardBtn" class="card folder-card fade-in" title="Create New Stack"
+                        style="cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 1.5rem; border: 2px dashed var(--accent-color); background: rgba(88, 166, 255, 0.05); min-height: 120px;">
+                        <ion-icon name="add-outline" style="font-size: 3.5rem; color: var(--accent-color);"></ion-icon>
+                    </div>
+                </div>
+
+                <div class="upload-container" id="createFolderPanel"
+                    style="margin: 0; display: none; margin-bottom: 2rem;">
+                    <h2 style="margin-bottom: 1.5rem;"><ion-icon name="folder-add-outline"
+                            style="vertical-align: middle; margin-right: 0.5rem;"></ion-icon> Create New Stack</h2>
+                    <form id="createFolderForm">
+                        <input type="text" id="folderNameInput" placeholder="Folder Name (e.g. Nature Wallpapers)"
+                            required
+                            style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white;">
+                        <select id="folderCategoryInput"
+                            style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white; -webkit-appearance: none; appearance: none;">
+                            <option value="images" style="background: #0d1117;">Category: Images</option>
+                            <option value="videos" style="background: #0d1117;">Category: Videos</option>
+                            <option value="posters" style="background: #0d1117;">Category: Official Posters</option>
+                        </select>
+                        <input type="password" id="folderPassInput" placeholder="Folder Password (Optional)"
+                            style="width: 100%; padding: 0.8rem; margin-bottom: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white;">
+                        <div id="folderStatusMessage"
+                            style="margin-bottom: 1rem; display: none; padding: 0.5rem; border-radius: 6px; text-align: center;">
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <button type="button" class="btn" id="cancelCreateFolderBtn"
+                                style="background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary);">Cancel</button>
+                            <button type="submit" id="createFolderBtn" class="btn btn-primary" style="flex: 1;">Create
+                                Folder</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab 1.5: Admin Images View (Hidden Initially) -->
+            <div id="adminImagesView" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <button id="adminBackBtn" class="btn"
+                            style="background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-primary);">
+                            <ion-icon name="arrow-back-outline"></ion-icon> Back
+                        </button>
+                        <button id="imagesActionBtn" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.5rem 1rem; border-radius: 20px; display: flex; align-items: center; gap: 0.5rem;">
+                            <ion-icon name="add-circle-outline"></ion-icon> <span>Action</span>
+                        </button>
+                        <h2 id="adminFolderTitle" style="margin: 0;">Folder Media</h2>
+                    </div>
+                    <button class="btn btn-secondary cycle-view-btn" data-target="adminImagesGrid"
+                        title="Toggle Grid View" style="font-size: 1.25rem; padding: 0.4rem 0.6rem;"><ion-icon
+                            name="apps-outline"></ion-icon></button>
+                </div>
+                <div id="adminLoaderImages" class="loader" style="display: none;"></div>
+                <div id="adminImagesGrid" class="gallery grid-view-3"></div>
+            </div>
+
+            <!-- Tab 2: Feedback View -->
+            <div id="feedbackView" style="display: none;">
+                <!-- Section 1: Inbox List -->
+                <div id="feedbackListSection">
+                    <h2 style="margin-bottom: 2rem;"><ion-icon name="chatbubbles-outline"
+                            style="vertical-align: middle; margin-right: 0.5rem;"></ion-icon> Administration Inbox</h2>
+                    <div id="feedbackList" class="custom-scrollbar"
+                        style="display: flex; flex-direction: column; gap: 1rem; max-height: calc(100vh - 250px); overflow-y: auto; padding-right: 0.5rem;">
+                        <div style="color: var(--text-secondary); text-align: center; margin-top: 2rem;">Loading
+                            messages...</div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Single Detail (Hidden initially) -->
+                <div id="feedbackDetailSection" style="display: none;" class="fade-in">
+                    <div style="display: flex; align-items: center; margin-bottom: 2rem; gap: 1.5rem;">
+                        <button id="feedbackBackBtn" class="btn feedback-back-btn"
+                            style="background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 20px;">
+                            <ion-icon name="arrow-back-outline"
+                                style="vertical-align: middle; margin-right: 0.5rem;"></ion-icon> Back
+                        </button>
+                        <h2 class="feedback-detail-title" style="margin: 0;">Message Details</h2>
+                    </div>
+
+                    <div class="glass-morphism"
+                        style="padding: 3rem; border-radius: 20px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2);">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem;">
+                            <div>
+                                <h3 id="detailSenderName"
+                                    style="margin: 0 0 0.5rem 0; color: var(--accent-color); font-size: 1.8rem;"></h3>
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <span style="color: var(--text-secondary); font-size: 0.9rem;">Received via Platform
+                                        Feedback</span>
+                                    <span id="detailTimestamp"
+                                        style="color: var(--text-secondary); font-size: 0.9rem; opacity: 0.6;"></span>
+                                </div>
+                            </div>
+                            <button id="detailActionBtn" class="btn btn-secondary feedback-action-btn"
+                                style="border-radius: 25px;">
+                                <ion-icon name="folder-open-outline" style="margin-right: 0.5rem;"></ion-icon> View in
+                                Folder
+                            </button>
+                        </div>
+
+                        <div id="detailMediaPreview"
+                            style="margin-bottom: 2.5rem; border-radius: 16px; overflow: hidden; background: #000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);">
+                        </div>
+
+                        <div style="background: rgba(255,255,255,0.03); padding: 2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); line-height: 1.7; color: var(--text-primary); font-size: 1.2rem; white-space: pre-wrap;"
+                            id="detailMessageText">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Unified Bulk Upload Modal Layout -->
+    <div id="uploadModal" class="modal-overlay" style="display: none;">
+        <div class="modal fade-in" style="max-width: 600px; width: 90%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3><ion-icon name="cloud-upload-outline"
+                        style="color: var(--accent-color); vertical-align: middle;"></ion-icon> Upload to Stack</h3>
+                <button id="closeUploadModalBtn"
+                    style="background: transparent; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer;"><ion-icon
+                        name="close-outline"></ion-icon></button>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">Select hundreds or
+                thousands of photos below to rapidly upload them in batch to <strong id="uploadTargetFolderName"
+                    style="color: var(--text-primary);"></strong>.</p>
+
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="drop-zone" id="dropZone" style="padding: 2rem;">
+                    <ion-icon name="cloud-upload"
+                        style="font-size: 3rem; margin-bottom: 0.5rem; color: var(--accent-color);"></ion-icon>
+                    <p class="drop-zone-text" style="font-size: 1rem;" id="dropZoneLabel">Click to select files, or
+                        <strong>drag & drop folders here</strong></p>
+                    <input type="file" name="images" id="imageInput" class="file-input"
+                        accept=".jpg,.jpeg,.png,.gif,.webp,.heic,.svg,.tiff,image/*,video/*" multiple required>
+                </div>
+
+                <div class="preview-container" id="previewContainer"
+                    style="margin-bottom: 1.5rem; text-align: center; color: var(--accent-color); font-weight: 500; font-size: 1.1rem;">
+                    <!-- Preview indicator for massive batches -->
+                </div>
+
+                <div id="uploadStatusMessage"
+                    style="margin-bottom: 1rem; display: none; padding: 0.75rem; border-radius: 8px; text-align: center; font-weight: 500;">
+                </div>
+                <button type="submit" class="btn btn-primary" id="uploadSubmitBtn"
+                    style="width: 100%; justify-content: center; padding: 0.8rem; font-size: 1rem;">Publish
+                    Images</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+
+    <!-- Floating Footer -->
+    <div class="floating-footer">
+        <button id="themeToggleBtn" class="floating-icon-btn" title="Toggle Theme">
+            <ion-icon name="sunny-outline" id="themeIcon"></ion-icon>
+        </button>
+        <button id="chatModeBtn" class="floating-icon-btn" title="Send Feedback">
+            <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+        </button>
+        <a id="whatsappLink" href="https://wa.me/918891463146" target="_blank" class="floating-icon-btn"
+            title="Contact on WhatsApp">
+            <ion-icon name="logo-whatsapp"></ion-icon>
+        </a>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="modal-overlay" style="display: none; z-index: 2000;">
+        <div class="modal-content glass-morphism fade-in" style="max-width: 450px; width: 90%; padding: 2rem;">
+            <h3 style="margin-bottom: 1rem; color: var(--text-primary);"><ion-icon name="chatbox-outline"
+                    style="color: var(--accent-color); vertical-align: middle; margin-right: 0.5rem;"></ion-icon> Send
+                Feedback</h3>
+            <input type="text" id="feedbackName" placeholder="Your Name"
+                style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: var(--text-primary); outline: none;">
+            <textarea id="feedbackText" placeholder="Your Feedback..." rows="4"
+                style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: var(--text-primary); resize: vertical; outline: none;"></textarea>
+            <div id="feedbackStatus"
+                style="display: none; margin-bottom: 1rem; padding: 0.5rem; border-radius: 6px; text-align: center; font-size: 0.9rem;">
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <button id="cancelFeedbackBtn" class="btn btn-cancel" style="flex: 1;">Cancel</button>
+                <button id="submitFeedbackBtn" class="btn btn-primary" style="flex: 1;">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal-overlay" style="display: none; z-index: 5000;">
+        <div class="modal fade-in"
+            style="max-width: 320px; text-align: center; padding: 2.5rem; background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+            <div class="success-checkmark">
+                <div class="check-icon">
+                    <span class="icon-line line-tip"></span>
+                    <span class="icon-line line-long"></span>
+                    <div class="icon-circle"></div>
+                    <div class="icon-fix"></div>
+                </div>
+            </div>
+            <h3 style="margin-bottom: 0.5rem; color: #4CAF50;">Success!</h3>
+            <p id="successModalMessage" style="color: var(--text-secondary); font-size: 0.95rem;">Action completed
+                successfully.</p>
+        </div>
+    </div>
+
+
+    <div id="confirmModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass-morphism fade-in"
+            style="max-width: 400px; padding: 2.5rem; text-align: center;">
+            <div id="confirmIconContainer"
+                style="background: rgba(255, 123, 114, 0.1); color: #ff7b72; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">
+                <ion-icon id="confirmIcon" name="trash-outline"></ion-icon>
+            </div>
+            <h2 id="confirmTitle" style="margin-bottom: 0.5rem; font-size: 1.5rem; color: #fff;">Are you sure?</h2>
+            <p id="confirmMessage" style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.5;">This
+                action cannot be undone.</p>
+            <div style="display: flex; gap: 1rem;">
+                <button id="confirmCancelBtn" class="btn btn-cancel" style="flex: 1;">Cancel</button>
+                <button id="confirmDeleteBtn" class="btn btn-danger" style="flex: 1;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="customAlert" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass-morphism fade-in" style="max-width: 400px; padding: 2.5rem; text-align: center;">
+            <div id="alertIconContainer" style="background: rgba(58, 167, 255, 0.1); color: var(--accent-color); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">
+                <ion-icon id="alertIcon" name="information-circle-outline"></ion-icon>
+            </div>
+            <h2 id="alertTitle" style="margin-bottom: 0.5rem; font-size: 1.5rem; color: #fff;">Notification</h2>
+            <p id="alertMessage" style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.5;">Status message here.</p>
+            <button id="alertOkBtn" class="btn btn-primary" style="width: 100%;">OK</button>
+        </div>
+    </div>
+    <!-- Action Choice Modal -->
+    <div id="actionChoiceModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass-morphism fade-in" style="max-width: 450px; padding: 2.5rem; text-align: center;">
+            <div style="background: rgba(58, 167, 255, 0.1); color: var(--accent-color); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">
+                <ion-icon name="add-outline"></ion-icon>
+            </div>
+            <h2 style="margin-bottom: 0.5rem; font-size: 1.5rem; color: #fff;">Take Action</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Select what you would like to do in this section.</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <button id="actionUploadFilesBtn" class="btn btn-primary" style="justify-content: flex-start; padding: 1rem 1.5rem; border-radius: 12px;">
+                    <ion-icon name="images-outline" style="margin-right: 1rem; font-size: 1.4rem;"></ion-icon>
+                    <span>Upload Files (Images/Videos)</span>
+                </button>
+                <button id="actionUploadFolderBtn" class="btn btn-secondary" style="justify-content: flex-start; padding: 1rem 1.5rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                    <ion-icon name="folder-open-outline" style="margin-right: 1rem; font-size: 1.4rem;"></ion-icon>
+                    <span>Upload Folder (Bulk Ingestion)</span>
+                </button>
+                <button id="actionCreateSubfolderBtn" class="btn btn-secondary" style="justify-content: flex-start; padding: 1rem 1.5rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                    <ion-icon name="layers-outline" style="margin-right: 1rem; font-size: 1.4rem;"></ion-icon>
+                    <span>Create Sub-folder (New Stack)</span>
+                </button>
+                <button id="actionCancelBtn" class="btn btn-cancel" style="margin-top: 0.5rem; padding: 0.8rem; border-radius: 12px;">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <!-- Move Folder Modal -->
+    <div id="moveFolderModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass-morphism fade-in" style="max-width: 450px; padding: 2.5rem; text-align: center;">
+            <div style="background: rgba(255, 171, 0, 0.1); color: #ffab00; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">
+                <ion-icon name="swap-horizontal-outline"></ion-icon>
+            </div>
+            <h2 style="margin-bottom: 0.5rem; font-size: 1.5rem; color: #fff;">Move Folder</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Select a destination for "<span id="moveFolderNameDisplay" style="color: var(--accent-color);"></span>".</p>
+            
+            <div id="moveFolderList" class="custom-scrollbar" style="display: flex; flex-direction: column; gap: 0.8rem; max-height: 300px; overflow-y: auto; text-align: left; margin-bottom: 2rem;">
+                <!-- Target folders will be listed here -->
+            </div>
+            
+            <div style="display: flex; gap: 1rem;">
+                <button id="moveFolderCancelBtn" class="btn btn-cancel" style="flex: 1;">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <!-- Rename Folder Modal -->
+    <div id="renameFolderModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass-morphism fade-in" style="max-width: 400px; padding: 2.5rem; text-align: center;">
+            <div style="background: rgba(58, 167, 255, 0.1); color: var(--accent-color); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">
+                <ion-icon name="create-outline"></ion-icon>
+            </div>
+            <h2 style="margin-bottom: 0.5rem; font-size: 1.5rem; color: #fff;">Rename Folder</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Enter a new name for this stack.</p>
+            
+            <input type="text" id="renameFolderNameInput" placeholder="New Folder Name" style="width: 100%; padding: 1rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; margin-bottom: 2rem; font-size: 1rem; outline: none;">
+            
+            <div style="display: flex; gap: 1rem;">
+                <button id="renameFolderCancelBtn" class="btn btn-cancel" style="flex: 1;">Cancel</button>
+                <button id="renameFolderConfirmBtn" class="btn btn-primary" style="flex: 1;">Rename</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

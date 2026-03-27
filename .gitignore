@@ -1,0 +1,6 @@
+# Ignore local heavy media and logs
+node_modules/
+uploads/
+.vercel/
+.DS_Store
+*.log
