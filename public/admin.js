@@ -1073,9 +1073,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }, false);
 
     async function handleDroppedFolderUpload(rootFolderName, validFiles) {
-        showMsg(folderStatusMessage, `Processing folder: ${rootFolderName}...`, 'success');
+        showMsg(folderStatusMessage, `Initializing ${rootFolderName} in Cloud...`, 'success');
         try {
-            // 1. Create the root folder for this upload
+            // 1. Get Cloudinary Details
+            const configRes = await fetch('/api/cloudinary-config');
+            const config = await configRes.json();
+            if (!config.cloudName) throw new Error('Cloudinary not configured');
+
+            // 2. Create the folder entry in our Database first
             const res = await fetch('/api/folders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1087,38 +1092,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
             const folderData = await res.json();
+            if (!folderData.success) throw new Error(folderData.msg || 'Folder creation failed');
             
-            if (folderData.success) {
-                const newFolderId = folderData.folder.id;
-                
-                const formData = new FormData();
-                formData.append('folderId', newFolderId);
-                formData.append('password', sessionPassword);
-                
-                validFiles.forEach(file => {
-                    formData.append('images', file);
-                });
+            const newFolderId = folderData.folder.id;
+            let successCount = 0;
 
-                showMsg(folderStatusMessage, `Uploading ${validFiles.length} files to ${rootFolderName}...`, 'success');
-                
-                const uploadRes = await fetch('/api/upload', {
+            // 3. Upload each file DIRECTLY to Cloudinary (one by one to bypass all limits)
+            for (let i = 0; i < validFiles.length; i++) {
+                const file = validFiles[i];
+                showMsg(folderStatusMessage, `Uploading to Cloud: ${i+1}/${validFiles.length} (${file.name})`, 'success');
+
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', config.uploadPreset);
+                formData.append('folder', `msoe-images/${newFolderId}`);
+
+                const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${config.cloudName}/auto/upload`, {
                     method: 'POST',
                     body: formData
                 });
-                const uploadData = await uploadRes.json();
-                
-                if (uploadData.success) {
-                    showSuccessModal('Folder upload successful!');
-                    loadFoldersAdmin();
-                } else {
-                    showMsg(folderStatusMessage, 'Upload failed: ' + uploadData.msg, 'error');
+                const cloudData = await cloudRes.json();
+
+                if (cloudData.secure_url) {
+                    // 4. Notify our server of the success (Metadata only - very fast/light)
+                    await fetch('/api/image-metadata', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            adminPassword: sessionPassword,
+                            folderId: newFolderId,
+                            name: file.name,
+                            url: cloudData.secure_url,
+                            publicId: cloudData.public_id
+                        })
+                    });
+                    successCount++;
                 }
-            } else {
-                showMsg(folderStatusMessage, 'Folder creation failed: ' + folderData.msg, 'error');
             }
+
+            showSuccessModal(`Folder "${rootFolderName}" uploaded! (${successCount} files)`);
+            loadFoldersAdmin();
         } catch (error) {
             console.error('Folder upload error:', error);
-            showMsg(folderStatusMessage, 'Upload failed. Check console.', 'error');
+            showMsg(folderStatusMessage, 'Sync Error: ' + error.message, 'error');
         } finally {
             folderUploadInput.value = '';
         }

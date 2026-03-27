@@ -76,7 +76,36 @@ app.post('/api/folders', async (req, res) => {
     }
 });
 
-// Admin: Upload to Cloudinary & Save to Supabase
+// Admin: Get Cloudinary Config (Safe for Browser)
+app.get('/api/cloudinary-config', (req, res) => {
+    res.json({ 
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+        uploadPreset: 'msoe_preset' // The one we created in Step 1
+    });
+});
+
+// Admin: Save Image Metadata (After Direct-to-Cloud Upload)
+app.post('/api/image-metadata', async (req, res) => {
+    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    const { folderId, name, url, publicId } = req.body;
+    
+    try {
+        const { data, error } = await supabase.from('images').insert([{
+            folderId,
+            name,
+            url,
+            publicId
+        }]).select();
+
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false, msg: err.message });
+    }
+});
+
+// [LEGACY/FALLBACK] Admin: Upload to Cloudinary & Save to Supabase
+// Note: This still has the Vercel 4.5MB limit. Use the new metadata flow for large files!
 app.post('/api/upload', async (req, res) => {
     upload(req, res, async (err) => {
         if (err) return res.status(400).json({ success: false, msg: err.toString() });
@@ -91,13 +120,12 @@ app.post('/api/upload', async (req, res) => {
                     async (error, result) => {
                         if (error) return reject(error);
                         
-                        // Save image metadata to Supabase
-                        const { data, error: dbErr } = await supabase.from('images').insert([{
+                        const { error: dbErr } = await supabase.from('images').insert([{
                             folderId,
                             name: file.originalname,
                             url: result.secure_url,
                             publicId: result.public_id
-                        }]).select();
+                        }]);
                         
                         if (dbErr) return reject(dbErr);
                         resolve(result.secure_url);
@@ -109,7 +137,7 @@ app.post('/api/upload', async (req, res) => {
 
         try {
             const results = await Promise.all(uploadPromises);
-            res.status(200).json({ success: true, msg: `${req.files.length} Files Uploaded Seamlessly to Cloud!`, files: results });
+            res.status(200).json({ success: true, msg: `${req.files.length} Files Uploaded Seamlessly!`, files: results });
         } catch (uploadErr) {
             res.status(500).json({ success: false, msg: uploadErr.message });
         }
