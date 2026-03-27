@@ -120,13 +120,14 @@ document.addEventListener('DOMContentLoaded', () => {
             card.style.animationDelay = `${(index + 5) * 0.05}s`;
             card.style.padding = '0';
             card.style.overflow = 'hidden';
+            card.dataset.url = img.url;
+            card.dataset.name = img.name;
 
             const selectIndicator = document.createElement('div');
             selectIndicator.className = 'select-indicator';
             selectIndicator.innerHTML = '<ion-icon name="checkmark-outline"></ion-icon>';
             card.appendChild(selectIndicator);
 
-            // Re-use existing renderMedia logic
             const mediaEl = renderMedia(img, index);
             
             const downloadBtn = document.createElement('button');
@@ -193,29 +194,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function loadContent(folderId, password) {
-        showLoader(true);
-        try {
-            const res = await fetch(`/api/folders/${folderId}/images`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
-            });
-            const data = await res.json();
-            if (data.success) {
-                currentImagesList = data.images;
-                applyMasterFilter();
-            } else {
-                // If nested folder is failed (expired session?), back to root
-                navigate(0);
-            }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            showLoader(false);
-        }
-    }
-
     async function navigate(index) {
         if (!navigationPath[index]) return;
         const item = navigationPath[index];
@@ -226,8 +204,26 @@ document.addEventListener('DOMContentLoaded', () => {
             currentImagesList = [];
             applyMasterFilter();
         } else {
-            // Load photos for this folder using saved password
-            await loadContent(item.id, item.password || '');
+            // Load content for this folder using saved password
+            showLoader(true);
+            try {
+                const res = await fetch(`/api/folders/${item.id}/images`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: item.password || '' })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentImagesList = data.images;
+                    applyMasterFilter();
+                } else {
+                    navigate(0);
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                showLoader(false);
+            }
         }
     }
 
@@ -259,8 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 span.onclick = () => navigate(index);
                 const slash = document.createElement('ion-icon');
                 slash.setAttribute('name', 'chevron-forward-outline');
-                slash.style.fontSize = '0.8rem';
-                slash.style.opacity = '0.4';
+                slash.className = 'breadcrumb-slash';
                 galleryBreadcrumbs.appendChild(span);
                 galleryBreadcrumbs.appendChild(slash);
             } else {
@@ -271,11 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateFooterNav() {
         if (!footerNavIcon) return;
-        if (currentParentId === 'root') {
-            footerNavIcon.setAttribute('name', 'home-outline');
-        } else {
-            footerNavIcon.setAttribute('name', 'arrow-back-outline');
-        }
+        footerNavIcon.setAttribute('name', currentParentId === 'root' ? 'home-outline' : 'arrow-back-outline');
     }
 
     if (footerNavBtn) {
@@ -292,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             currentCategory = tab.dataset.category;
-            navigate(0); // Back to Home Root
+            navigate(0);
         };
     });
 
@@ -344,29 +335,134 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Lightbox & Extras (Standard) ---
+    // --- Lightbox Logic ---
     window.openLightbox = function(index) {
         currentLightboxIndex = index;
         const lightboxModal = document.getElementById('lightboxModal');
         const lightboxImg = document.getElementById('lightboxImg');
         const img = currentImagesList[index];
-        lightboxImg.src = img.url;
-        lightboxModal.style.display = 'flex';
+        if (img) {
+            lightboxImg.src = img.url;
+            lightboxModal.style.display = 'flex';
+        }
     };
 
     const lightboxClose = document.getElementById('lightboxClose');
-    if (lightboxClose) lightboxClose.onclick = () => {
-        document.getElementById('lightboxModal').style.display = 'none';
-    };
+    if (lightboxClose) lightboxClose.onclick = () => document.getElementById('lightboxModal').style.display = 'none';
 
-    // --- Theme Logic ---
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
-    const themeIcon = document.getElementById('themeIcon');
-    if (themeToggleBtn) {
-        themeToggleBtn.onclick = () => {
-            document.body.classList.toggle('light-theme');
-            themeIcon.setAttribute('name', document.body.classList.contains('light-theme') ? 'moon-outline' : 'sunny-outline');
+    const lightboxPrev = document.getElementById('lightboxPrev');
+    const lightboxNext = document.getElementById('lightboxNext');
+
+    if (lightboxPrev) {
+        lightboxPrev.onclick = () => {
+            if (currentLightboxIndex > 0) openLightbox(currentLightboxIndex - 1);
+        };
+    }
+    if (lightboxNext) {
+        lightboxNext.onclick = () => {
+            if (currentLightboxIndex < currentImagesList.length - 1) openLightbox(currentLightboxIndex + 1);
         };
     }
 
+    // --- Batch Download Logic ---
+    function updateBatchBar() {
+        const batchBar = document.getElementById('batchActionsBar');
+        const batchText = document.getElementById('batchCountText');
+        const selected = document.querySelectorAll('.img-card.selected');
+        if (selected.length > 0) {
+            batchText.textContent = `${selected.length} Selected`;
+            batchBar.classList.add('visible');
+        } else {
+            batchBar.classList.remove('visible');
+        }
+    }
+
+    const batchClearBtn = document.getElementById('batchClearBtn');
+    if (batchClearBtn) {
+        batchClearBtn.onclick = () => {
+            document.querySelectorAll('.img-card.selected').forEach(c => c.classList.remove('selected'));
+            updateBatchBar();
+        };
+    }
+
+    const batchDownloadBtn = document.getElementById('batchDownloadBtn');
+    if (batchDownloadBtn) {
+        batchDownloadBtn.onclick = () => {
+            const selected = document.querySelectorAll('.img-card.selected');
+            selected.forEach((card, i) => {
+                setTimeout(() => forceDownload(card.dataset.url, card.dataset.name), i * 350);
+            });
+            setTimeout(() => {
+                document.querySelectorAll('.img-card.selected').forEach(c => c.classList.remove('selected'));
+                updateBatchBar();
+            }, selected.length * 350 + 500);
+        };
+    }
+
+    // --- QR Modal Logic ---
+    const qrCodeBtn = document.getElementById('qrCodeBtn');
+    const qrModal = document.getElementById('qrModal');
+    const closeQrModalBtn = document.getElementById('closeQrModalBtn');
+    const qrLinkInput = document.getElementById('qrLinkInput');
+    const qrPreview = document.getElementById('qrPreview');
+    const qrImage = document.getElementById('qrImage');
+
+    if (qrCodeBtn) {
+        qrCodeBtn.onclick = () => {
+            qrLinkInput.value = window.location.href;
+            qrModal.style.display = 'flex';
+        };
+    }
+    if (closeQrModalBtn) closeQrModalBtn.onclick = () => qrModal.style.display = 'none';
+
+    if (qrLinkInput) {
+        qrLinkInput.oninput = () => {
+            if (qrLinkInput.value.trim()) {
+                qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrLinkInput.value)}`;
+                qrPreview.style.display = 'block';
+            }
+        };
+    }
+
+    // --- Feedback Logic ---
+    const chatModeBtn = document.getElementById('chatModeBtn');
+    const feedbackModal = document.getElementById('feedbackModal');
+    const cancelFeedbackBtn = document.getElementById('cancelFeedbackBtn');
+    const submitFeedbackBtn = document.getElementById('submitFeedbackBtn');
+
+    if (chatModeBtn) chatModeBtn.onclick = () => feedbackModal.style.display = 'flex';
+    if (cancelFeedbackBtn) cancelFeedbackBtn.onclick = () => feedbackModal.style.display = 'none';
+
+    if (submitFeedbackBtn) {
+        submitFeedbackBtn.onclick = async () => {
+            const name = document.getElementById('feedbackName').value;
+            const text = document.getElementById('feedbackText').value;
+            if (!name || !text) return;
+
+            submitFeedbackBtn.disabled = true;
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, feedback: text })
+                });
+                if (res.ok) {
+                    feedbackModal.style.display = 'none';
+                    alert('Feedback sent! Thank you.');
+                }
+            } catch (e) {} finally {
+                submitFeedbackBtn.disabled = false;
+            }
+        };
+    }
+
+    // --- Theme Logic ---
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    if (themeToggleBtn) {
+        themeToggleBtn.onclick = () => {
+            document.body.classList.toggle('light-theme');
+            const icon = document.getElementById('themeIcon');
+            icon.setAttribute('name', document.body.classList.contains('light-theme') ? 'moon-outline' : 'sunny-outline');
+        };
+    }
 });
