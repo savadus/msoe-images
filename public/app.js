@@ -180,10 +180,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const data = await res.json();
             if (data.success) {
-                passwordModal.style.display = 'none';
+                // 1. Instantly Update State
                 currentImagesList = data.images;
                 navigationPath.push({ id: folder.id, name: folder.name, password });
-                navigate(navigationPath.length - 1);
+                currentParentId = folder.id;
+
+                // 2. Hide Modal Immediately
+                passwordModal.style.display = 'none';
+
+                // 3. Render Content Without Second Fetch
+                applyMasterFilter();
             } else {
                 folderAuthError.style.display = 'block';
             }
