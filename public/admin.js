@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const actionUploadFilesBtn = document.getElementById('actionUploadFilesBtn');
     const actionUploadFolderBtn = document.getElementById('actionUploadFolderBtn');
     const actionCreateSubfolderBtn = document.getElementById('actionCreateSubfolderBtn');
+    const actionUploadDirectPosterBtn = document.getElementById('actionUploadDirectPosterBtn');
     const actionCancelBtn = document.getElementById('actionCancelBtn');
     let currentParentId = 'root'; 
     let navigationPath = [{ id: 'root', name: 'Home' }];
@@ -455,7 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
         adminFoldersGrid.innerHTML = '';
         // Removed createFolderCardBtn from grid as it's now accessible via the unified "+" Action button
 
-        const filtered = folders.filter(f => (f.parentId || 'root') === currentParentId);
+        const filtered = folders.filter(f => (f.parentId || 'root') === currentParentId && f.name !== '__POSTER_ROOT__');
 
         filtered.forEach((f, idx) => {
             const card = document.createElement('div');
@@ -1408,9 +1409,15 @@ document.addEventListener('DOMContentLoaded', () => {
         actionChoiceModal.style.display = 'none';
     };
 
-    if (mainActionBtn) mainActionBtn.addEventListener('click', showActionMenu);
-    if (imagesActionBtn) imagesActionBtn.addEventListener('click', showActionMenu);
     if (actionCancelBtn) actionCancelBtn.addEventListener('click', closeActionMenu);
+
+    if (mainActionBtn) mainActionBtn.addEventListener('click', () => {
+        showActionMenu();
+        // Show Direct Poster button only at root (optionally)
+        if (actionUploadDirectPosterBtn) {
+            actionUploadDirectPosterBtn.style.display = (currentParentId === 'root') ? 'flex' : 'none';
+        }
+    });
 
     actionUploadFilesBtn.addEventListener('click', () => {
         closeActionMenu();
@@ -1450,6 +1457,44 @@ document.addEventListener('DOMContentLoaded', () => {
         closeActionMenu();
         createFolderPanel.style.display = 'flex';
         folderNameInput.focus();
+    });
+
+    actionUploadDirectPosterBtn.addEventListener('click', async () => {
+        closeActionMenu();
+        
+        // Find or Create __POSTER_ROOT__ folder
+        let magicFolder = currentFolders.find(f => f.name === '__POSTER_ROOT__' && f.category === 'posters');
+        
+        if (!magicFolder) {
+            showMsg(folderStatusMessage, 'Initializing Direct Poster Stream...', 'success');
+            try {
+                const res = await fetch('/api/folders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        adminPassword: sessionPassword, 
+                        name: '__POSTER_ROOT__', 
+                        category: 'posters' 
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    magicFolder = data.folder;
+                    currentFolders.push(magicFolder);
+                }
+            } catch(e) {
+                console.error('Failed to create poster root', e);
+            }
+        }
+
+        if (magicFolder) {
+            activeUploadFolderId = magicFolder.id;
+            uploadTargetFolderName.textContent = "Home › Posters (Direct)";
+            uploadModal.style.display = 'flex';
+            imageInput.click();
+        } else {
+            showCustomAlert('Init Failed', 'Could not initialize the direct posters stream.', { icon: 'alert-circle-outline' });
+        }
     });
 
     // --- Folder Upload Logic ---

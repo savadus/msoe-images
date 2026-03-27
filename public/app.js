@@ -52,6 +52,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // 1. Filter Sub-Folders
         const subFolders = allFolders.filter(f => {
+            // Hide the system folder from lists
+            if (f.name === '__POSTER_ROOT__') return false; 
+            
             if (currentParentId === 'root') {
                 return (!f.parentId) && (f.category === currentCategory);
             } else {
@@ -62,9 +65,18 @@ document.addEventListener('DOMContentLoaded', () => {
         // 2. Render Folders First
         renderFolders(subFolders);
 
-        // 3. Render Images Second (if not root)
+        // 3. Render Images Second
         if (currentParentId !== 'root') {
             renderGallery(currentImagesList);
+        } else if (currentCategory === 'posters') {
+            // Special: If we are at root of posters, check if we need to load direct posters
+            const magicFolder = allFolders.find(f => f.name === '__POSTER_ROOT__' && f.category === 'posters');
+            if (magicFolder && currentImagesList.length === 0) {
+                // This is first load of root posters, fetch them
+                loadContent(magicFolder.id, '');
+            } else if (currentImagesList.length > 0) {
+                renderGallery(currentImagesList);
+            }
         }
 
         updatePageTitle();
