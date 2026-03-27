@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const actionUploadFolderBtn = document.getElementById('actionUploadFolderBtn');
     const actionCreateSubfolderBtn = document.getElementById('actionCreateSubfolderBtn');
     const actionUploadDirectPosterBtn = document.getElementById('actionUploadDirectPosterBtn');
+    const actionManageDirectPostersBtn = document.getElementById('actionManageDirectPostersBtn');
     const actionCancelBtn = document.getElementById('actionCancelBtn');
     let currentParentId = 'root'; 
     let navigationPath = [{ id: 'root', name: 'Home' }];
@@ -1413,9 +1414,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (mainActionBtn) mainActionBtn.addEventListener('click', () => {
         showActionMenu();
-        // Show Direct Poster button only at root (optionally)
+        // Show Direct Poster buttons only at root
         if (actionUploadDirectPosterBtn) {
             actionUploadDirectPosterBtn.style.display = (currentParentId === 'root') ? 'flex' : 'none';
+        }
+        if (actionManageDirectPostersBtn) {
+            actionManageDirectPostersBtn.style.display = (currentParentId === 'root') ? 'flex' : 'none';
         }
     });
 
@@ -1494,6 +1498,43 @@ document.addEventListener('DOMContentLoaded', () => {
             imageInput.click();
         } else {
             showCustomAlert('Init Failed', 'Could not initialize the direct posters stream.', { icon: 'alert-circle-outline' });
+        }
+    });
+
+    actionManageDirectPostersBtn.addEventListener('click', async () => {
+        closeActionMenu();
+        
+        // Find or Create __POSTER_ROOT__ folder
+        let magicFolder = currentFolders.find(f => f.name === '__POSTER_ROOT__' && f.category === 'posters');
+        
+        if (!magicFolder) {
+            showMsg(folderStatusMessage, 'Initializing Manager Pathway...', 'success');
+            try {
+                const res = await fetch('/api/folders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        adminPassword: sessionPassword, 
+                        name: '__POSTER_ROOT__', 
+                        category: 'posters' 
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    magicFolder = data.folder;
+                    currentFolders.push(magicFolder);
+                    loadFoldersAdmin();
+                }
+            } catch(e) {}
+        }
+
+        if (magicFolder) {
+            navigationPath.push({ id: magicFolder.id, name: 'Direct Home Posters' });
+            currentParentId = magicFolder.id;
+            updateBreadcrumbs();
+            loadFolderImagesAdmin(magicFolder.id, 'Direct Home Posters');
+        } else {
+            showCustomAlert('Access Denied', 'The direct poster stream is not initialized.', { icon: 'alert-circle-outline' });
         }
     });
 
