@@ -1,303 +1,247 @@
+require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs');
+const { createClient } = require('@supabase/supabase-js');
+const cloudinary = require('cloudinary').v2;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-// --- Hosting Compatibility Layer (Persistent Storage) ---
-const uploadDir = path.join(__dirname, 'uploads');
+// --- CLOUD CONFIGURATION ---
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// --- MIDDLEWARE ---
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(uploadDir));
 app.use(express.json());
 
-// Ensure base directories exist
-try {
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-} catch (e) { console.warn('Directory check failed, but continuing...'); }
-
-const foldersFile = path.join(uploadDir, 'folders.json');
-const chatFile = path.join(uploadDir, 'chat.json');
-
-// Initialize data files if missing
-if (!fs.existsSync(foldersFile)) try { fs.writeFileSync(foldersFile, JSON.stringify([])); } catch(e){}
-if (!fs.existsSync(chatFile)) try { fs.writeFileSync(chatFile, JSON.stringify([])); } catch(e){}
-
-function getFolders() {
-    try {
-        const content = fs.readFileSync(foldersFile, 'utf8');
-        return content ? JSON.parse(content) : [];
-    } catch(e) { return []; }
-}
-function saveFolders(folders) {
-    try {
-        fs.writeFileSync(foldersFile, JSON.stringify(folders, null, 2));
-    } catch(e) { console.error('Save folders failed:', e); }
-}
-
-function getChats() {
-    try {
-        const content = fs.readFileSync(chatFile, 'utf8');
-        return content ? JSON.parse(content) : [];
-    } catch(e) { return []; }
-}
-function saveChats(chats) {
-    try {
-        fs.writeFileSync(chatFile, JSON.stringify(chats, null, 2));
-    } catch(e) { console.error('Save chats failed:', e); }
-}
-
-// Multer Config
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const folderId = req.body.folderId || 'default';
-        const dest = path.join(uploadDir, folderId);
-        if (!fs.existsSync(dest)) try { fs.mkdirSync(dest, { recursive: true }); } catch(e){}
-        cb(null, dest);
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
-    }
-});
+// --- MULTER CLOUD STORAGE ---
+const storage = multer.memoryStorage();
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 100 * 1024 * 1024 },
-    fileFilter: function (req, file, cb) {
-        const filetypes = /jpeg|jpg|png|gif|webp|heic|svg|tiff|mp4|mov|avi|mkv|webm/;
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        const isImage = file.mimetype.startsWith('image/');
-        const isVideo = file.mimetype.startsWith('video/');
-        
-        if (extname && (isImage || isVideo)) return cb(null, true);
-        cb(null, false);
-    }
+    limits: { fileSize: 100 * 1024 * 1024 }
 }).array('images', 5000);
 
-// Admin: Create a folder
-app.post('/api/folders', (req, res) => {
+// --- API ENDPOINTS (SUPABASE + CLOUDINARY) ---
+
+// Admin: Create a folder (Stack)
+app.post('/api/folders', async (req, res) => {
     if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
     const { name, password, category, parentId } = req.body;
     if (!name) return res.status(400).json({ success: false, msg: 'Folder name required' });
     
-    const folders = getFolders();
-    const newFolder = { 
-        id: Date.now().toString(), 
-        name, 
-        password: password || '', 
-        category: category || 'images',
-        parentId: (parentId === 'root' || !parentId) ? null : parentId,
-        isPinned: false, 
-        createdAt: Date.now() 
-    };
-    folders.push(newFolder);
-    saveFolders(folders);
-    
-    // Create physical dir
-    const dir = path.join(uploadDir, newFolder.id);
-    if (!fs.existsSync(dir)) try { fs.mkdirSync(dir, { recursive: true }); } catch(e){}
-    
-    res.json({ success: true, folder: newFolder });
+    try {
+        const { data, error } = await supabase.from('folders').insert([{
+            name,
+            password: password || '',
+            category: category || 'images',
+            parentId: (parentId === 'root' || !parentId) ? null : parentId,
+            isPinned: false
+        }]).select().single();
+
+        if (error) throw error;
+        res.json({ success: true, folder: data });
+    } catch (err) {
+        res.status(500).json({ success: false, msg: err.message });
+    }
 });
 
-// Admin: Upload multiple images to a folder
-app.post('/api/upload', (req, res) => {
-    upload(req, res, (err) => {
+// Admin: Upload to Cloudinary & Save to Supabase
+app.post('/api/upload', async (req, res) => {
+    upload(req, res, async (err) => {
         if (err) return res.status(400).json({ success: false, msg: err.toString() });
         if (req.body.password !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized!' });
         if (!req.files || req.files.length === 0) return res.status(400).json({ success: false, msg: 'No Files Selected!' });
         
         const folderId = req.body.folderId || 'default';
-        const filesDeployed = req.files.map(f => `/uploads/${folderId}/${f.filename}`);
-        res.status(200).json({ success: true, msg: `${req.files.length} Files Uploaded Successfully!`, files: filesDeployed });
-    });
-});
+        const uploadPromises = req.files.map(file => {
+            return new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { folder: `msoe-images/${folderId}`, resource_type: 'auto' },
+                    async (error, result) => {
+                        if (error) return reject(error);
+                        
+                        // Save image metadata to Supabase
+                        const { data, error: dbErr } = await supabase.from('images').insert([{
+                            folderId,
+                            name: file.originalname,
+                            url: result.secure_url,
+                            publicId: result.public_id
+                        }]).select();
+                        
+                        if (dbErr) return reject(dbErr);
+                        resolve(result.secure_url);
+                    }
+                );
+                stream.end(file.buffer);
+            });
+        });
 
-// Admin: Rename Folder
-app.post('/api/folders/:id/rename', (req, res) => {
-    const { adminPassword, newName } = req.body;
-    if (adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
-    
-    if (!newName || newName.trim() === '') return res.status(400).json({ success: false, msg: 'New name is required' });
-
-    const folders = getFolders();
-    const folder = folders.find(f => f.id === req.params.id);
-    if (!folder) return res.status(404).json({ success: false, msg: 'Folder not found' });
-    
-    folder.name = newName.trim();
-    saveFolders(folders);
-    res.json({ success: true, folder });
-});
-
-// Admin: Update Folder (Relocate/Move to new parent)
-app.post('/api/folders/:id/move', (req, res) => {
-    const { adminPassword, parentId } = req.body;
-    if (adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
-    
-    const folders = getFolders();
-    const folder = folders.find(f => f.id === req.params.id);
-    if (!folder) return res.status(404).json({ success: false, msg: 'Folder not found' });
-    
-    if (parentId === req.params.id) {
-        return res.status(400).json({ success: false, msg: 'Cannot move folder into itself' });
-    }
-
-    folder.parentId = (parentId === 'root' || !parentId) ? null : parentId;
-    saveFolders(folders);
-    res.json({ success: true, folder });
-});
-
-// Admin: Mark all folders as read/sync (for UI refresh)
-app.post('/api/folders/sync', (req, res) => {
-    res.json({ success: true });
-});
-
-// Public: Get all folders with file counts
-app.get('/api/folders', (req, res) => {
-    console.log(`[API] GET /api/folders called by ${req.ip}`);
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    
-    const folders = getFolders();
-    const sorted = folders.sort((a,b) => {
-        if (a.isPinned !== b.isPinned) return b.isPinned ? 1 : -1;
-        return b.createdAt - a.createdAt;
-    });
-    res.json({ success: true, folders: sorted.map(f => {
-        const folderPath = path.join(uploadDir, f.id);
-        let count = 0;
-        if (fs.existsSync(folderPath)) {
-            count = fs.readdirSync(folderPath).filter(file => !file.startsWith('.')).length;
+        try {
+            const results = await Promise.all(uploadPromises);
+            res.status(200).json({ success: true, msg: `${req.files.length} Files Uploaded Seamlessly to Cloud!`, files: results });
+        } catch (uploadErr) {
+            res.status(500).json({ success: false, msg: uploadErr.message });
         }
-        return { 
-            id: f.id, 
-            name: f.name, 
-            category: f.category || 'images',
-            parentId: f.parentId || null,
-            hasPassword: !!f.password, 
-            isPinned: !!f.isPinned,
-            fileCount: count
-        };
-    }) });
+    });
 });
 
-// Admin: Toggle Pin Folder
-app.post('/api/folders/:id/pin', (req, res) => {
-    const { adminPassword } = req.body;
-    if (adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
-    
-    const folders = getFolders();
-    const folder = folders.find(f => f.id === req.params.id);
-    if (!folder) return res.status(404).json({ success: false, msg: 'Not found' });
-    
-    folder.isPinned = !folder.isPinned;
-    saveFolders(folders);
-    res.json({ success: true, isPinned: folder.isPinned });
+// Public: Get all folders (Stacks)
+app.get('/api/folders', async (req, res) => {
+    try {
+        const { data: folders, error: fErr } = await supabase.from('folders').select('*');
+        if (fErr) throw fErr;
+
+        // Get file counts for each folder
+        const { data: counts, error: cErr } = await supabase.rpc('get_file_counts');
+        const countMap = (counts || []).reduce((acc, c) => ({ ...acc, [c.folderId]: c.count }), {});
+
+        const sorted = folders.sort((a,b) => {
+            if (a.isPinned !== b.isPinned) return b.isPinned ? -1 : 1;
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+
+        res.json({ success: true, folders: sorted.map(f => ({
+            id: f.id,
+            name: f.name,
+            category: f.category,
+            parentId: f.parentId,
+            hasPassword: !!f.password,
+            isPinned: f.isPinned,
+            fileCount: countMap[f.id] || 0
+        })) });
+    } catch (err) {
+        res.status(500).json({ success: false, msg: err.message });
+    }
 });
 
 // Public: Get images from folder
-app.post('/api/folders/:id/images', (req, res) => {
+app.post('/api/folders/:id/images', async (req, res) => {
     const folderId = req.params.id;
     const { password } = req.body;
-    const folder = getFolders().find(f => f.id === folderId);
-    if (!folder) return res.status(404).json({ success: false, msg: 'Folder not found' });
-    if (folder.password && folder.password !== password) return res.status(401).json({ success: false, msg: 'Incorrect password' });
     
-    const folderPath = path.join(uploadDir, folderId);
-    if (!fs.existsSync(folderPath)) return res.json({ success: true, images: [], folderName: folder.name });
-    
-    const files = fs.readdirSync(folderPath).filter(f => !f.startsWith('.'));
-    res.json({ success: true, images: files.map(file => ({ name: file, url: `/uploads/${folderId}/${file}` })), folderName: folder.name });
+    try {
+        const { data: folder, error: fErr } = await supabase.from('folders').select('*').eq('id', folderId).single();
+        if (fErr || !folder) throw new Error('Stack not found');
+        if (folder.password && folder.password !== password) return res.status(401).json({ success: false, msg: 'Incorrect password' });
+
+        const { data: images, error: iErr } = await supabase.from('images').select('*').eq('folderId', folderId);
+        if (iErr) throw iErr;
+
+        res.json({ success: true, images: images.map(img => ({ name: img.name, url: img.url })), folderName: folder.name });
+    } catch (err) {
+        res.status(500).json({ success: false, msg: err.message });
+    }
 });
 
 // Public: Feedback/Chat
-app.post('/api/chat', (req, res) => {
+app.post('/api/chat', async (req, res) => {
+    const { name, feedback, mediaUrl } = req.body;
+    if (!name || !feedback) return res.status(400).json({ success: false, msg: 'Missing info' });
+    
     try {
-        const { name, feedback, mediaUrl } = req.body;
-        if (!name || !feedback) return res.status(400).json({ success: false, msg: 'Missing info' });
-        
-        const chats = getChats();
-        const newChat = { 
-            id: Date.now().toString(), 
-            name, 
-            feedback, 
+        const { data, error } = await supabase.from('chats').insert([{
+            name,
+            feedback,
             mediaUrl: mediaUrl || null,
-            viewed: false,
-            createdAt: Date.now() 
-        };
-        chats.push(newChat);
-        saveChats(chats);
-        res.json({ success: true, chat: newChat });
+            viewed: false
+        }]).select().single();
+
+        if (error) throw error;
+        res.json({ success: true, chat: data });
     } catch (err) {
-        console.error('Feedback error:', err);
-        res.status(500).json({ success: false, msg: 'Server storage error' });
+        res.status(500).json({ success: false, msg: err.message });
     }
 });
 
-// Admin: Mark chat as viewed
-app.post('/api/admin/chat/mark-viewed', (req, res) => {
-    const { adminPassword, chatId } = req.body;
-    if (adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
-    
-    let chats = getChats();
-    const chatIndex = chats.findIndex(c => c.id == chatId);
-    if (chatIndex !== -1) {
-        chats[chatIndex].viewed = true;
-        saveChats(chats);
-        res.json({ success: true });
-    } else {
-        res.status(404).json({ success: false, msg: 'Chat not found' });
-    }
-});
+// --- ADMIN CONTROLS (DELETE/RENAME) ---
 
-// Admin: Delete an image
-app.delete('/api/images', (req, res) => {
-    const { adminPassword, folderId, filename } = req.body;
-    if (adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
-    if (!folderId || !filename) return res.status(400).json({ success: false, msg: 'Missing info' });
-    
-    const filePath = path.join(uploadDir, folderId, filename);
-    if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-        res.json({ success: true, msg: 'Image deleted' });
-    } else {
-        res.status(404).json({ success: false, msg: 'Image not found' });
-    }
-});
-
-// Admin: Delete an entire folder
-app.delete('/api/folders/:id', (req, res) => {
-    const { adminPassword } = req.body;
-    const { id } = req.params;
-
-    if (adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
-    
+app.post('/api/folders/:id/pin', async (req, res) => {
+    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
     try {
-        let folders = getFolders();
-        const folderIndex = folders.findIndex(f => f.id === id);
-        if (folderIndex === -1) return res.status(404).json({ success: false, msg: 'Folder not found' });
-        
-        const folderId = folders[folderIndex].id;
-        folders.splice(folderIndex, 1);
-        saveFolders(folders);
-        
-        const folderPath = path.join(uploadDir, folderId);
-        if (fs.existsSync(folderPath)) {
-            fs.rmSync(folderPath, { recursive: true, force: true });
-        }
-        res.json({ success: true, msg: 'Folder and contents deleted' });
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ success: false, msg: 'Server error' });
-    }
+        const { data: folder, error: gErr } = await supabase.from('folders').select('isPinned').eq('id', req.params.id).single();
+        if (gErr) throw gErr;
+
+        const { error: sErr } = await supabase.from('folders').update({ isPinned: !folder.isPinned }).eq('id', req.params.id);
+        if (sErr) throw sErr;
+        res.json({ success: true, isPinned: !folder.isPinned });
+    } catch (err) { res.status(500).json({ success: false, msg: err.message }); }
 });
 
-// Start Server
+app.post('/api/folders/:id/rename', async (req, res) => {
+    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    try {
+        const { error } = await supabase.from('folders').update({ name: req.body.newName }).eq('id', req.params.id);
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false, msg: err.message }); }
+});
+
+app.post('/api/folders/:id/move', async (req, res) => {
+    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    try {
+        const { error } = await supabase.from('folders').update({ parentId: req.body.parentId === 'root' ? null : req.body.parentId }).eq('id', req.params.id);
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false, msg: err.message }); }
+});
+
+app.delete('/api/folders/:id', async (req, res) => {
+    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    try {
+        // Delete all images from Cloudinary first
+        const { data: imgs } = await supabase.from('images').select('publicId').eq('folderId', req.params.id);
+        if (imgs && imgs.length > 0) {
+            await Promise.all(imgs.map(img => cloudinary.uploader.destroy(img.publicId)));
+        }
+        
+        // Delete from DB (Images cascade or manual delete)
+        await supabase.from('images').delete().eq('folderId', req.params.id);
+        await supabase.from('folders').delete().eq('id', req.params.id);
+        
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false, msg: err.message }); }
+});
+
+app.delete('/api/images', async (req, res) => {
+    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    try {
+        const { data: img } = await supabase.from('images').select('publicId').eq('name', req.body.filename).eq('folderId', req.body.folderId).single();
+        if (img) await cloudinary.uploader.destroy(img.publicId);
+        await supabase.from('images').delete().eq('name', req.body.filename).eq('folderId', req.body.folderId);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false, msg: err.message }); }
+});
+
+// Admin: Get all chats
+app.post('/api/admin/chats', async (req, res) => {
+    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    try {
+        const { data: chats, error } = await supabase.from('chats').select('*').order('createdAt', { ascending: false });
+        if (error) throw error;
+        res.json({ success: true, chats });
+    } catch (err) { res.status(500).json({ success: false, msg: err.message }); }
+});
+
+app.post('/api/admin/chat/mark-viewed', async (req, res) => {
+    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    try {
+        await supabase.from('chats').update({ viewed: true }).eq('id', req.body.chatId);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false, msg: err.message }); }
+});
+
+// Server Start
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running at http://0.0.0.0:${PORT}`);
 });
