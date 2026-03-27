@@ -13,27 +13,22 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
 
-// Ensure uploads directory exists (Handling read-only environments like Vercel)
-const uploadDir = path.join(__dirname, 'uploads');
+// --- Vercel Compatibility Layer (/tmp storage) ---
+const isVercel = process.env.VERCEL || process.env.NODE_ENV === 'production';
+const baseStorageDir = isVercel ? '/tmp' : __dirname;
+const uploadDir = path.join(baseStorageDir, 'uploads');
+
+// Ensure base directories exist
 try {
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
-} catch (e) {
-    console.warn('Warning: Could not create uploads directory (Read-only environment or permissions).');
-}
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+} catch (e) { console.warn('Directory check failed, continuing...'); }
 
 const foldersFile = path.join(uploadDir, 'folders.json');
-try {
-    if (!fs.existsSync(foldersFile)) fs.writeFileSync(foldersFile, JSON.stringify([]));
-} catch (e) {
-    console.warn('Warning: Could not initialize folders.json.');
-}
-
 const chatFile = path.join(uploadDir, 'chat.json');
-try {
-    if (!fs.existsSync(chatFile)) fs.writeFileSync(chatFile, JSON.stringify([]));
-} catch (e) {
-    console.warn('Warning: Could not initialize chat.json.');
-}
+
+// Initialize data files if missing
+if (!fs.existsSync(foldersFile)) try { fs.writeFileSync(foldersFile, JSON.stringify([])); } catch(e){}
+if (!fs.existsSync(chatFile)) try { fs.writeFileSync(chatFile, JSON.stringify([])); } catch(e){}
 
 function getFolders() {
     try {
@@ -42,7 +37,9 @@ function getFolders() {
     } catch(e) { return []; }
 }
 function saveFolders(folders) {
-    fs.writeFileSync(foldersFile, JSON.stringify(folders, null, 2));
+    try {
+        fs.writeFileSync(foldersFile, JSON.stringify(folders, null, 2));
+    } catch(e) { console.error('Save folders failed:', e); }
 }
 
 function getChats() {
@@ -52,7 +49,9 @@ function getChats() {
     } catch(e) { return []; }
 }
 function saveChats(chats) {
-    fs.writeFileSync(chatFile, JSON.stringify(chats, null, 2));
+    try {
+        fs.writeFileSync(chatFile, JSON.stringify(chats, null, 2));
+    } catch(e) { console.error('Save chats failed:', e); }
 }
 
 // Multer Config
