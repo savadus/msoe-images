@@ -8,20 +8,18 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-const isVercel = process.env.VERCEL || process.env.NODE_ENV === 'production';
-const baseStorageDir = isVercel ? '/tmp' : __dirname;
-const uploadDir = path.join(baseStorageDir, 'uploads');
+// --- Hosting Compatibility Layer (Persistent Storage) ---
+const uploadDir = path.join(__dirname, 'uploads');
 
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(uploadDir));
 app.use(express.json());
 
-// --- Vercel Compatibility Layer (/tmp storage) ---
 // Ensure base directories exist
 try {
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-} catch (e) { console.warn('Directory check failed, continuing...'); }
+} catch (e) { console.warn('Directory check failed, but continuing...'); }
 
 const foldersFile = path.join(uploadDir, 'folders.json');
 const chatFile = path.join(uploadDir, 'chat.json');
