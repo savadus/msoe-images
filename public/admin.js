@@ -615,7 +615,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`/api/folders/${folderId}/images`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password: sessionPassword }) 
+                body: JSON.stringify({ adminPassword: sessionPassword }) 
             });
             const data = await res.json();
             adminLoaderImages.style.display = 'none';
