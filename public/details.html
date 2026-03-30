@@ -131,8 +131,8 @@
         const themeBtn = document.getElementById('themeToggleBtnDetails');
         const themeIcon = document.getElementById('themeIconDetails');
 
-        // Use saved theme or default to dark
-        const savedTheme = localStorage.getItem('theme') || 'dark';
+        // Use saved theme or default to dark (Reset for new version)
+        const savedTheme = localStorage.getItem('msoe_theme') || 'dark';
         if (savedTheme === 'light') {
             document.body.classList.add('light-theme');
             if(themeIcon) themeIcon.name = 'moon-outline';
@@ -145,7 +145,7 @@
             document.body.classList.toggle('light-theme');
             const isLight = document.body.classList.contains('light-theme');
             themeIcon.name = isLight ? 'moon-outline' : 'sunny-outline';
-            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            localStorage.setItem('msoe_theme', isLight ? 'light' : 'dark');
             window.dispatchEvent(new Event('scroll')); // Instantly repaint dynamic button colors
         });
 

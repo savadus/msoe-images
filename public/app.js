@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.toggle('light-theme');
             const isLight = document.body.classList.contains('light-theme');
             themeIcon.setAttribute('name', isLight ? 'moon-outline' : 'sunny-outline');
-            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            localStorage.setItem('msoe_theme', isLight ? 'light' : 'dark');
         };
     }
 });

@@ -34,8 +34,8 @@
     </header>
 
     <script>
-        // Use saved theme or default to dark
-        const savedTheme = localStorage.getItem('theme') || 'dark';
+        // Use saved theme or default to dark (Reset for new version)
+        const savedTheme = localStorage.getItem('msoe_theme') || 'dark';
         if (savedTheme === 'light') {
             document.body.classList.add('light-theme');
         } else {
