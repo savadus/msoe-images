@@ -34,9 +34,13 @@
     </header>
 
     <script>
-        // Always force Light Mode when initially loading the gallery page
-        document.body.classList.add('light-theme');
-        localStorage.setItem('theme', 'light');
+        // Use saved theme or default to dark
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-theme');
+        } else {
+            document.body.classList.remove('light-theme');
+        }
     </script>
     <!-- Moved category nav inside view-toggles -->
 
@@ -121,7 +125,7 @@
             <ion-icon name="home-outline" id="footerNavIcon"></ion-icon>
         </a>
         <button id="themeToggleBtn" class="floating-icon-btn" title="Toggle Theme">
-            <ion-icon name="moon-outline" id="themeIcon"></ion-icon>
+            <ion-icon name="sunny-outline" id="themeIcon"></ion-icon>
         </button>
         <button id="chatModeBtn" class="floating-icon-btn" title="Send Feedback">
             <ion-icon name="chatbubble-ellipses-outline"></ion-icon>

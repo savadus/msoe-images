@@ -491,11 +491,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Theme Logic ---
     const themeToggleBtn = document.getElementById('themeToggleBtn');
-    if (themeToggleBtn) {
+    const themeIcon = document.getElementById('themeIcon');
+    if (themeToggleBtn && themeIcon) {
+        // Init icon based on state
+        themeIcon.setAttribute('name', document.body.classList.contains('light-theme') ? 'moon-outline' : 'sunny-outline');
+        
         themeToggleBtn.onclick = () => {
             document.body.classList.toggle('light-theme');
-            const icon = document.getElementById('themeIcon');
-            icon.setAttribute('name', document.body.classList.contains('light-theme') ? 'moon-outline' : 'sunny-outline');
+            const isLight = document.body.classList.contains('light-theme');
+            themeIcon.setAttribute('name', isLight ? 'moon-outline' : 'sunny-outline');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
         };
     }
 });

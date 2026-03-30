@@ -130,11 +130,16 @@
         // --- Theme Management ---
         const themeBtn = document.getElementById('themeToggleBtnDetails');
         const themeIcon = document.getElementById('themeIconDetails');
-        
-        // Always force Light Mode when initially loading the Details page
-        document.body.classList.add('light-theme'); 
-        if(themeIcon) themeIcon.name = 'moon-outline'; 
-        localStorage.setItem('theme', 'light');
+
+        // Use saved theme or default to dark
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-theme');
+            if(themeIcon) themeIcon.name = 'moon-outline';
+        } else {
+            document.body.classList.remove('light-theme');
+            if(themeIcon) themeIcon.name = 'sunny-outline';
+        }
 
         themeBtn.addEventListener('click', () => {
             document.body.classList.toggle('light-theme');
