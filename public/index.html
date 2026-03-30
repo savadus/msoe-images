@@ -1,30 +1,31 @@
-<html lang="en" class="cinematic-page">
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Details | Msoe Clicks</title>
+    <title>Msoe Clicks | Image Platform</title>
+    <!-- Use Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
-    <link href="https://fonts.cdnfonts.com/css/avillia" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <link href="https://fonts.cdnfonts.com/css/avillia" rel="stylesheet">
     <!-- PDF Generation Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
-<body class="cinematic-page">
-    <header class="glass-morphism details-header" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 10vw; border-bottom: 1px solid var(--border-color); box-sizing: border-box;">
+
+<body>
+    <header class="glass-morphism">
         <div style="display: flex; align-items: center; gap: 1.5rem;">
-            <a href="gallery.html" class="logo">
+            <a href="details.html" class="logo">
                 <img src="header-logo-dark.png" alt="Logo" class="header-logo-dark">
                 <img src="header-logo-light.png" alt="Logo" class="header-logo-light">
             </a>
         </div>
         <div style="display: flex; gap: 1.5rem; align-items: center;">
-            <a href="https://wa.me/918891463146" target="_blank" class="floating-icon-btn" title="Contact on WhatsApp" style="font-size: 1.5rem; display: flex; align-items: center;">
-                <ion-icon name="logo-whatsapp"></ion-icon>
-            </a>
             <div class="header-right-logo">
                 <img src="right-logo-dark.png" alt="Academy Logo" class="logo-dark">
                 <img src="right-logo-light.png" alt="Academy Logo" class="logo-light">
@@ -32,426 +33,252 @@
         </div>
     </header>
 
-    <div id="scroll-container">
-        <div class="sticky-hero">
-            <!-- Mobile Signature (18vh / 12vw) - Hidden on desktop via CSS -->
-            <img src="sign.png" alt="Signature" id="mobileSignature" style="position: absolute; top: 18vh; left: 12vw; height: 34px; opacity: 0.8; z-index: 20; pointer-events: none; display: none; transition: opacity 0.5s ease;">
-            
-            <!-- Frame Sequence Renderer -->
-            <img id="sequenceImg" src="images/hero%20section/ezgif-frame-001.png" alt="Hero Animation Frame">
+    <script>
+        // Always force Light Mode when initially loading the gallery page
+        document.body.classList.add('light-theme');
+        localStorage.setItem('theme', 'light');
+    </script>
+    <!-- Moved category nav inside view-toggles -->
 
-            <!-- Dynamic Text Overlays on Top Left -->
-            <div class="scroll-text-overlay" id="textBlock1">
-                <div class="desktop-only-scroll" style="display: flex; flex-direction: column; align-items: center; gap: 0.3rem; margin-bottom: 1.5rem; opacity: 0.8;">
-                    <ion-icon name="arrow-down-outline" style="font-size: 1.8rem; animation: scrollBounce 2s infinite;"></ion-icon>
-                    <span style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">Scroll Down</span>
+    <main>
+        <div id="integratedGalleryView" class="fade-in">
+            <h1 id="pageMainTitle">Isha'th Images</h1>
+            <!-- Subtitle removed for cleaner UI -->
+
+            <!-- Breadcrumbs Navigation -->
+            <nav id="galleryBreadcrumbs" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2rem; font-size: 0.95rem; color: var(--text-secondary); flex-wrap: wrap;">
+                <span class="breadcrumb-item" data-id="root" style="cursor: pointer; color: var(--accent-color); font-weight: 500; display: flex; align-items: center; gap: 0.3rem;">
+                    <ion-icon name="home-outline"></ion-icon> Home
+                </span>
+            </nav>
+
+            <div class="view-toggles fade-in" style="justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <nav class="category-nav" style="margin: 0; position: static; background: transparent; border: none; padding: 0; box-shadow: none;">
+                    <button class="category-tab active" data-category="images">Images</button>
+                    <button class="category-tab" data-category="videos">Videos</button>
+                    <button class="category-tab" data-category="posters">Posters</button>
+                </nav>
+                <div style="display: flex; gap: 0.8rem; align-items: center;">
+                    <button class="btn btn-secondary cycle-view-btn" data-target="integratedGrid" title="Toggle Grid View"
+                        style="font-size: 1.25rem; padding: 0.4rem 0.6rem;"><ion-icon
+                            name="apps-outline"></ion-icon></button>
                 </div>
-                <h1 style="margin-bottom: 0;">Discover MSOE</h1>
-                <h2>Ma'din School Of Excellence</h2>
             </div>
-            <div class="scroll-text-overlay" id="textBlock2">
-                <h1>MSOE</h1>
-                <h2>MA'DIN SCHOOL OF EXCELLENCE</h2>
-            </div>
-            <div class="scroll-text-overlay" id="textBlock3">
-                <h1>Dual Degree Program</h1>
-                <h2>Students at Ma'din School of Excellence earn dual degrees: Islamic Studies Graduation: From Ma’din Academy. Graduation: From a UGC-approved university, completing the modern education component of the program.</h2>
-            </div>
-            <div class="scroll-text-overlay" id="textBlock4">
-                <h1>Msoe Clicks</h1>
-                <h2 style="margin-bottom: 1.5rem;">It is a web app completely made for our students and parents to get their photos easily which captured from our programs.</h2>
-                <div class="finale-actions">
-                    <button onclick="replaySequence()" class="btn hover-glow" title="Replay Animation" style="display: flex; align-items: center; justify-content: center; width: 3.2rem; height: 3.2rem; border-radius: 50%; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); cursor: pointer; transition: transform 0.2s, background 0.3s; flex-shrink: 0; padding: 0;">
-                        <ion-icon name="refresh-outline" style="font-size: 1.6rem; margin: 0;"></ion-icon>
-                    </button>
-                    <button id="qrCodeBtnDetails" class="btn hover-glow" title="QR Code Generator" style="display: flex; align-items: center; justify-content: center; width: 3.2rem; height: 3.2rem; border-radius: 50%; background: rgba(255,255,255,0.1); color: #7ee787; border: 1px solid rgba(126, 231, 135, 0.3); backdrop-filter: blur(10px); cursor: pointer; transition: all 0.3s ease; padding: 0;">
-                        <ion-icon name="qr-code-outline" style="font-size: 1.6rem; margin: 0;"></ion-icon>
-                    </button>
-                    <a href="gallery.html" class="btn hover-glow" title="Enter Gallery" style="display: flex; align-items: center; gap: 0.6rem; padding: 0.8rem 1.8rem; font-size: 1rem; border-radius: 50px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); cursor: pointer; transition: all 0.3s ease; text-decoration: none; font-weight: 600;">
-                        <ion-icon name="images-outline" style="font-size: 1.4rem;"></ion-icon> Gallery
-                    </a>
-                </div>
+
+            <!-- Loader -->
+            <div id="loaderFolders" class="loader"></div>
+
+            <!-- Unified Content Grid -->
+            <!-- We will render sub-folders and images here -->
+            <div id="integratedGrid" class="gallery fade-in"></div>
+
+            <!-- Empty States -->
+            <div id="empty-state-folders" style="display: none; text-align: center; margin-top: 4rem;">
+                <ion-icon name="folder-open-outline" style="font-size: 4rem; color: var(--text-secondary);"></ion-icon>
+                <h2 style="margin-top: 1rem; color: var(--text-secondary);">No content found</h2>
+                <p>Wait for an admin to upload some assets.</p>
             </div>
         </div>
-    </div>
 
-    <!-- Unified Floating Action Bar (Desktop Only) -->
-    <div class="footer-actions-container desktop-only-footer" style="position: fixed; bottom: 2.5rem; left: 0; right: 0; margin: 0 auto; display: flex; align-items: center; justify-content: center; width: 100%; max-width: 600px; z-index: 1000;">
-        <div class="action-pill unified-action-pill" style="display: flex; align-items: center; padding: 0.5rem 1.5rem;">
-            <!-- Theme Toggle -->
-            <button id="themeToggleBtnDetails" class="floating-icon-btn" title="Toggle Theme" style="font-size: 1.4rem; padding: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                <ion-icon name="sunny-outline" id="themeIconDetails"></ion-icon>
+        <!-- Hidden Legacy Views (to avoid JS breakage if IDs are searched) -->
+        <div id="foldersView" style="display: none;"><div id="foldersGrid"></div></div>
+        <div id="imagesView" style="display: none;">
+            <button id="backBtn" style="display: none;"></button>
+            <h1 id="folderTitle" style="display: none;"></h1>
+            <div id="loaderImages" style="display: none;"></div>
+            <div id="gallery" style="display: none;"></div>
+            <div id="empty-state" style="display: none;"></div>
+        </div>
+    </main>
+
+    <!-- Password Modal -->
+    <div id="passwordModal" class="modal-overlay" style="display: none;">
+        <div class="modal glass-morphism fade-in" style="max-width: 400px; text-align: center; padding: 3rem;">
+            <div style="background: rgba(88, 166, 255, 0.1); color: var(--accent-color); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">
+                <ion-icon name="lock-closed-outline"></ion-icon>
+            </div>
+            <h3 style="margin-bottom: 0.5rem; font-size: 1.5rem;">Protected Stack</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem;">Enter password to unlock this collection.</p>
+            
+            <input type="password" id="folderPasswordInput" placeholder="Password"
+                style="width: 100%; padding: 1rem; margin-bottom: 1rem; border-radius: 12px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.3); color: white; text-align: center; font-size: 1.2rem; outline: none; transition: border-color 0.3s;">
+            
+            <button id="submitFolderPasswordBtn" class="btn btn-primary" style="width: 100%; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; font-weight: 600;">
+                <ion-icon name="lock-open-outline" style="margin-right: 0.5rem;"></ion-icon> Unlock Stack
             </button>
             
-            <div class="pill-divider" style="width: 1px; height: 1.2rem; background: var(--border-color); margin: 0 1.2rem; opacity: 0.4;"></div>
+            <div id="folderAuthError" style="color: #ff7b72; margin-bottom: 1rem; display: none; font-size: 0.85rem; font-weight: 500;">
+                <ion-icon name="alert-circle-outline" style="vertical-align: middle; margin-right: 0.3rem;"></ion-icon> Access Denied
+            </div>
             
-            <!-- Gallery Images -->
-            <a href="gallery.html" id="galleryEnterBtn" style="font-family: 'Inter', sans-serif; font-size: 1.1rem; font-weight: 600; text-decoration: none; display: flex; align-items: center; transition: transform 0.2s ease, color 0.3s ease; letter-spacing: 0.5px; white-space: nowrap;">Images</a>
+            <button id="cancelModalBtn" class="btn" style="background: transparent; color: var(--text-secondary); margin-top: 1rem; font-size: 0.9rem;">Cancel</button>
         </div>
-        
-        <!-- Signature Branding (Widescreen Only) -->
-        <img src="sign.png" alt="Signature" class="footer-sign" style="height: 45px; opacity: 0; margin-left: 1.5rem; transition: opacity 0.5s ease;">
     </div>
- 
+
+    <!-- Floating Footer -->
+    <div class="floating-footer gallery-footer">
+        <a href="details.html" class="floating-icon-btn" title="Go to Details Page" id="footerNavBtn">
+            <ion-icon name="home-outline" id="footerNavIcon"></ion-icon>
+        </a>
+        <button id="themeToggleBtn" class="floating-icon-btn" title="Toggle Theme">
+            <ion-icon name="moon-outline" id="themeIcon"></ion-icon>
+        </button>
+        <button id="chatModeBtn" class="floating-icon-btn" title="Send Feedback">
+            <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+        </button>
+        <button id="qrCodeBtn" class="floating-icon-btn" title="Generate QR Code">
+            <ion-icon name="qr-code-outline"></ion-icon>
+        </button>
+        <a href="https://wa.me/918891463146" target="_blank" class="floating-icon-btn" title="Contact on WhatsApp">
+            <ion-icon name="logo-whatsapp"></ion-icon>
+        </a>
+        <a href="/admin.html" class="floating-icon-btn" title="Admin Login">
+            <ion-icon name="finger-print-outline"></ion-icon>
+        </a>
+    </div>
+
     <!-- QR Code Generator Modal -->
-    <div id="qrModal" class="modal-overlay" style="display: none; z-index: 2000;">
-        <div class="modal fade-in" style="max-width: 420px; text-align: center; padding: 2.5rem; background: rgba(20, 20, 20, 0.45); backdrop-filter: blur(15px) saturate(180%); -webkit-backdrop-filter: blur(15px) saturate(180%); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 32px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
-            <div style="background: rgba(126, 231, 135, 0.15); color: #7ee787; width: 62px; height: 62px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 1.8rem; border: 1px solid rgba(126, 231, 135, 0.2);">
+    <div id="qrModal" class="modal-overlay" style="display: none;">
+        <div class="modal glass-morphism fade-in" style="max-width: 420px; text-align: center; padding: 2.5rem;">
+            <div style="background: rgba(88, 166, 255, 0.1); color: var(--accent-color); width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 1.8rem;">
                 <ion-icon name="qr-code-outline"></ion-icon>
             </div>
-            <h3 style="margin-bottom: 0.4rem; font-size: 1.6rem; color: white; font-weight: 700; letter-spacing: -0.5px;">QR code generator</h3>
-            <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 2rem; font-size: 0.95rem; font-weight: 400;">Generate an instant share link.</p>
+            <h3 style="margin-bottom: 0.4rem; font-size: 1.4rem;">QR Code Generator</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1.8rem; font-size: 0.9rem;">Paste any link to generate an instant QR code.</p>
 
             <input type="url" id="qrLinkInput" placeholder="https://example.com"
-                style="width: 100%; padding: 1rem; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); color: white; font-size: 1rem; outline: none; margin-bottom: 1.5rem; text-align: center; transition: background 0.3s;"
+                style="width: 100%; padding: 0.9rem 1rem; border-radius: 12px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.3); color: white; font-size: 1rem; outline: none; margin-bottom: 1.2rem; text-align: center;"
             >
 
-            <div id="qrPreview" style="display: none; margin-bottom: 2rem;">
-                <img id="qrImage" src="" alt="QR Code" style="width: 200px; height: 200px; border-radius: 12px; border: 4px solid rgba(255,255,255,0.1); background: white; padding: 8px;">
-                <p style="font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 1.5rem; margin-bottom: 0.8rem;">Download Format</p>
-                <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
-                    <button id="qrDownPNG" class="btn btn-primary" style="border-radius: 20px; font-size: 0.85rem; padding: 0.5rem 1.2rem; cursor: pointer;">
+            <div id="qrPreview" style="display: none; margin-bottom: 1.5rem;">
+                <img id="qrImage" src="" alt="QR Code" style="width: 200px; height: 200px; border-radius: 12px; border: 4px solid var(--border-color); background: white; padding: 8px;">
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 1rem; margin-bottom: 0.5rem;">Download Format</p>
+                <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                    <button id="qrDownPNG" class="btn btn-primary" style="border-radius: 20px; font-size: 0.85rem; padding: 0.5rem 1rem;">
                         <ion-icon name="image-outline" style="margin-right: 0.3rem;"></ion-icon> PNG
                     </button>
-                    <button id="qrDownJPG" class="btn" style="border-radius: 20px; font-size: 0.85rem; padding: 0.5rem 1.2rem; background: rgba(255,255,255,0.1); color: white; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);">
+                    <button id="qrDownJPG" class="btn" style="border-radius: 20px; font-size: 0.85rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); color: var(--text-primary);">
                         <ion-icon name="image" style="margin-right: 0.3rem;"></ion-icon> JPG
                     </button>
-                    <button id="qrDownPDF" class="btn" style="border-radius: 20px; font-size: 0.85rem; padding: 0.5rem 1.2rem; background: rgba(255,255,255,0.1); color: white; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);">
+                    <button id="qrDownPDF" class="btn" style="border-radius: 20px; font-size: 0.85rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); color: var(--text-primary);">
                         <ion-icon name="document-text-outline" style="margin-right: 0.3rem;"></ion-icon> PDF
                     </button>
                 </div>
             </div>
 
-            <button id="closeQrModalBtn" class="btn" style="background: transparent; color: rgba(255,255,255,0.5); font-size: 0.9rem; cursor: pointer;">Close</button>
+            <button id="closeQrModalBtn" class="btn" style="background: transparent; color: var(--text-secondary); font-size: 0.9rem;">Close</button>
         </div>
     </div>
- 
-    <script>
-        // --- Theme Management ---
-        const themeBtn = document.getElementById('themeToggleBtnDetails');
-        const themeIcon = document.getElementById('themeIconDetails');
-        
-        // Always force Light Mode when initially loading the Details page
-        document.body.classList.add('light-theme'); 
-        if(themeIcon) themeIcon.name = 'moon-outline'; 
-        localStorage.setItem('theme', 'light');
 
-        themeBtn.addEventListener('click', () => {
-            document.body.classList.toggle('light-theme');
-            const isLight = document.body.classList.contains('light-theme');
-            themeIcon.name = isLight ? 'moon-outline' : 'sunny-outline';
-            localStorage.setItem('theme', isLight ? 'light' : 'dark');
-            window.dispatchEvent(new Event('scroll')); // Instantly repaint dynamic button colors
-        });
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="modal-overlay" style="display: none;">
+        <div class="modal fade-in">
+            <h3 style="margin-bottom: 1rem; color: var(--text-primary);"><ion-icon name="chatbox-outline"
+                    style="color: var(--accent-color); vertical-align: middle;"></ion-icon> Send Feedback</h3>
+            <input type="text" id="feedbackName" placeholder="Your Name"
+                style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-primary); outline: none;">
+            <textarea id="feedbackText" placeholder="Your Feedback..." rows="4"
+                style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-primary); resize: vertical; outline: none;"></textarea>
+            <div id="feedbackStatus"
+                style="margin-bottom: 1rem; display: none; font-size: 0.85rem; padding: 0.5rem; text-align: center; border-radius: 4px;">
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button id="cancelFeedbackBtn" class="btn"
+                    style="background: transparent; color: var(--text-secondary);">Cancel</button>
+                <button id="submitFeedbackBtn" class="btn btn-primary">Send</button>
+            </div>
+        </div>
+    </div>
 
-        // --- Scroll Animation Engine ---
-        const sequenceImg = document.getElementById('sequenceImg');
-        const textBlock1 = document.getElementById('textBlock1');
-        const textBlock2 = document.getElementById('textBlock2');
-        const textBlock3 = document.getElementById('textBlock3');
-        const textBlock4 = document.getElementById('textBlock4');
-        const galleryEnterBtn = document.getElementById('galleryEnterBtn');
-        // --- Responsive Frame Selection ---
-        // Automatically switch between 9:16 frames (mobile) and 16:9 (desktop)
-        const isMobile = window.innerWidth <= 767;
-        const imageFolder = isMobile ? 'hero_mobile' : 'hero_desktop';
-        const totalFrames = 62;
-        
-        // Format filenames based on device (both use frame-0X.png now)
-        function getFrameFilename(index) {
-            return `frame-0${index}.png`;
-        }
+    <!-- Success Modal -->
+    <div id="successModal" class="modal-overlay" style="display: none; z-index: 5000;">
+        <div class="modal fade-in" style="max-width: 320px; text-align: center; padding: 2.5rem; background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+            <div class="success-checkmark">
+                <div class="check-icon">
+                    <span class="icon-line line-tip"></span>
+                    <span class="icon-line line-long"></span>
+                    <div class="icon-circle"></div>
+                    <div class="icon-fix"></div>
+                </div>
+            </div>
+            <h3 style="margin-bottom: 0.5rem; color: #4CAF50;">Success!</h3>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">Thank you for your feedback.</p>
+        </div>
+    </div>
 
-        // Set initial frame dynamically to prevent flash
-        sequenceImg.src = `images/${imageFolder}/${getFrameFilename(1)}`;
 
-        // 1. Preload Images
-        const preloads = [];
-        for (let i = 1; i <= totalFrames; i++) {
-            const img = new Image();
-            img.src = `images/${imageFolder}/${getFrameFilename(i)}`;
-            preloads.push(img);
-        }
+    <!-- Batch Actions Bar -->
+    <div id="batchActionsBar" class="batch-actions-bar">
+        <span id="batchCountText" style="color: var(--text-primary); font-weight: 500;">0 selected</span>
+        <button id="batchDownloadBtn" class="btn btn-primary" style="border-radius: 20px;">
+            <ion-icon name="cloud-download-outline" style="margin-right: 0.5rem;"></ion-icon> Download Selected
+        </button>
+        <button id="batchClearBtn" class="btn" style="background: transparent; color: var(--text-secondary); border-radius: 20px;">Cancel</button>
+    </div>
 
-        // Handle Resizing (reloads the page to grab the correct resolution if crossing the mobile threshold)
-        window.addEventListener('resize', () => {
-            const currentIsMobile = window.innerWidth <= 767;
-            if (currentIsMobile !== isMobile) {
-                window.location.reload();
-            }
-        });
+    <!-- Lightbox Modal -->
+    <div id="lightboxModal" class="modal-overlay" style="display: none; z-index: 2000;">
+        <div class="lightbox-content" style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+            <button id="lightboxClose" class="lightbox-btn" style="position: absolute; top: 20px; right: 20px;"><ion-icon name="close"></ion-icon></button>
+            <button id="lightboxPrev" class="lightbox-nav-btn" style="left: 20px;"><ion-icon name="arrow-back-outline"></ion-icon></button>
+            <img id="lightboxImg" src="" alt="Preview" style="max-width: 90vw; max-height: 80vh; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); object-fit: contain;">
+            <button id="lightboxNext" class="lightbox-nav-btn" style="right: 20px;"><ion-icon name="arrow-forward-outline"></ion-icon></button>
+            <div class="lightbox-actions" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 1rem; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 30px; backdrop-filter: blur(10px);">
+                <button id="lightboxSelectBtn" class="btn btn-secondary" style="border-radius: 20px;"><ion-icon name="ellipse-outline"></ion-icon> Select</button>
+                <button id="lightboxReplyBtn" class="btn" style="border-radius: 20px; background: rgba(255,255,255,0.1); color: #fff;"><ion-icon name="chatbubble-outline"></ion-icon> Reply</button>
+                <button id="lightboxDownloadBtn" class="btn btn-primary" style="border-radius: 20px;"><ion-icon name="arrow-down-circle-outline"></ion-icon> Download</button>
+            </div>
+        </div>
+    </div>
 
-        // 2. Playback / Scroll Logic
-        let mobileFrame = 0;
-        let lastTimestamp = 0;
-        const fps = 24;
-        const interval = 1000 / fps;
-        let playbackActive = true;
-
-        function updateUI(fraction, fIndex) {
-            // Update Image Frame
-            sequenceImg.src = `images/${imageFolder}/${getFrameFilename(fIndex + 1)}`;
-
-            // Dynamic text positioning (shift to bottom-center at frame 21 globally)
-            const textBlocks = [textBlock1, textBlock2, textBlock3, textBlock4];
-            if (fIndex >= 20) { // frameIndex 20 corresponds to frame-021
-                textBlocks.forEach(block => {
-                    block.style.top = 'auto';
-                    block.style.bottom = '15vh';
-                });
-            } else {
-                textBlocks.forEach(block => {
-                    block.style.top = ''; // Reverts to CSS default (25vh)
-                    block.style.bottom = '';
-                });
-            }
-
-            // Update Text Overlays (Fade In/Out based on exact thresholds + Pointer Events lock)
+    <!-- Image Reply Modal -->
+    <div id="replyModal" class="modal-overlay" style="display: none; z-index: 3000;">
+        <div class="modal fade-in" style="max-width: 450px; width: 90%;">
+            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                <div id="replyMediaContainer" style="width: 80px; height: 80px; border-radius: 8px; overflow: hidden; background: #000; flex-shrink: 0;">
+                    <!-- Thumbnail injected here -->
+                </div>
+                <div style="flex: 1;">
+                    <h3 style="margin: 0;">Report / Reply</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.3rem 0;">Direct feedback for this asset</p>
+                </div>
+            </div>
             
-            // Block 1 (When Open - Frame 1: ~0.0 to 0.10)
-            if (fraction < 0.10) {
-                textBlock1.style.opacity = 1;
-                textBlock1.style.pointerEvents = 'auto';
-                textBlock1.style.transform = 'translateY(0)';
-            } else {
-                textBlock1.style.opacity = 0;
-                textBlock1.style.pointerEvents = 'none';
-                textBlock1.style.transform = 'translateY(-20px)';
-            }
-
-            // Block 2 (4th Frame: ~0.12 to 0.25)
-            if (fraction >= 0.12 && fraction < 0.25) {
-                textBlock2.style.opacity = 1;
-                textBlock2.style.pointerEvents = 'auto';
-                textBlock2.style.transform = 'translateY(0)';
-            } else {
-                textBlock2.style.opacity = 0;
-                textBlock2.style.pointerEvents = 'none';
-                textBlock2.style.transform = fraction >= 0.25 ? 'translateY(-20px)' : 'translateY(20px)';
-            }
-
-            // Block 3 (8th Frame: ~0.28 to 0.45)
-            if (fraction >= 0.28 && fraction < 0.45) {
-                textBlock3.style.opacity = 1;
-                textBlock3.style.pointerEvents = 'auto';
-                textBlock3.style.transform = 'translateY(0)';
-            } else {
-                textBlock3.style.opacity = 0;
-                textBlock3.style.pointerEvents = 'none';
-                textBlock3.style.transform = fraction >= 0.45 ? 'translateY(-20px)' : 'translateY(20px)';
-            }
+            <div id="replyStatusMessage" style="margin-bottom: 1rem; display: none; padding: 0.5rem; border-radius: 6px; text-align: center;"></div>
             
-            // Block 4 (13th Frame onwards: ~0.48 to 1.0)
-            if (fraction >= 0.48) {
-                textBlock4.style.opacity = 1;
-                textBlock4.style.pointerEvents = 'auto';
-                textBlock4.style.transform = 'translateY(0)';
-            } else {
-                textBlock4.style.opacity = 0;
-                textBlock4.style.pointerEvents = 'none';
-                textBlock4.style.transform = 'translateY(20px)';
-            }
-            
-            // Animate Button Text Color on Scroll tied to active Theme Mode
-            const sweepHue = 200 + (fraction * 160);
-            const isLightTheme = document.body.classList.contains('light-theme');
-            const dynamicLightness = isLightTheme ? '30%' : '75%'; // Dark colors in light mode, Light colors in dark mode
-            
-            galleryEnterBtn.style.color = `hsl(${sweepHue}, 90%, ${dynamicLightness})`;
-            
-            // Animate H1 Color (White -> Light Blue - INDIVIDUAL Transitions)
-            function updateTitleColor(el, f, start, end) {
-                let localFraction = (f - start) / (end - start);
-                if (f < start) localFraction = 0;
-                if (f > end) localFraction = 1;
+            <form id="replyForm">
+                <input type="text" id="replyNameInput" placeholder="Your Name" required style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white;">
+                <textarea id="replyTextInput" placeholder="Your message about this image/video..." required style="width: 100%; padding: 0.8rem; height: 120px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white; resize: none; margin-bottom: 1.5rem;"></textarea>
                 
-                const r_target = 196;
-                const g_target = 245;
-                const b_target = 255;
+                <div style="display: flex; gap: 1rem;">
+                    <button type="button" class="btn" id="closeReplyModalBtn" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary);">Cancel</button>
+                    <button type="submit" id="submitReplyBtn" class="btn btn-primary" style="flex: 1;">Send Reply</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-                const r = Math.round(255 - (localFraction * (255 - r_target)));
-                const g = Math.round(255 - (localFraction * (255 - g_target)));
-                const b = Math.round(255 - (localFraction * (255 - b_target)));
-
-                if(el) el.style.color = `rgb(${r}, ${g}, ${b})`;
-            }
-
-            updateTitleColor(textBlock1.querySelector('h1'), fraction, 0.0, 0.08);
-            updateTitleColor(textBlock2.querySelector('h1'), fraction, 0.12, 0.22);
-            updateTitleColor(textBlock3.querySelector('h1'), fraction, 0.28, 0.42);
-            updateTitleColor(textBlock4.querySelector('h1'), fraction, 0.48, 0.75);
-
-            // Hide/Show Images button and Divider based on 6th frame (index 5)
-            const showImages = fIndex >= 5;
-            const divider = document.querySelector('.pill-divider');
-            if (galleryEnterBtn) {
-                galleryEnterBtn.style.opacity = showImages ? '1' : '0';
-                galleryEnterBtn.style.pointerEvents = showImages ? 'auto' : 'none';
-                galleryEnterBtn.style.transform = showImages ? 'translateX(0)' : 'translateX(20px)';
-                galleryEnterBtn.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-            }
-            if (divider) {
-                divider.style.opacity = showImages ? '0.4' : '0';
-                divider.style.transition = 'opacity 0.5s ease';
-            }
-        }
-
-        window.replaySequence = function() {
-            if (isMobile) {
-                mobileFrame = 0;
-                lastTimestamp = 0;
-                playbackActive = true;
-                requestAnimationFrame(animateMobile);
-            } else {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        };
-
-        function animateMobile(timestamp) {
-            if (!playbackActive) return;
-
-            if (!lastTimestamp) lastTimestamp = timestamp;
-            const progress = timestamp - lastTimestamp;
-
-            if (progress > interval) {
-                lastTimestamp = timestamp - (progress % interval);
-                
-                if (mobileFrame < totalFrames - 1) {
-                    mobileFrame++;
-                    const fraction = mobileFrame / (totalFrames - 1);
-                    updateUI(fraction, mobileFrame);
-                } else {
-                    playbackActive = false;
-                }
-            }
-            if (playbackActive) {
-                requestAnimationFrame(animateMobile);
-            }
-        }
-
-        if (isMobile) {
-            // Lock body scroll on mobile for cinematic playback
-            document.body.style.overflow = 'hidden';
-            requestAnimationFrame(animateMobile);
-        } else {
-            window.addEventListener('scroll', () => {
-                const scrollTop = window.scrollY;
-                const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-                let scrollFraction = scrollTop / maxScroll;
-                if (scrollFraction < 0) scrollFraction = 0;
-                if (scrollFraction > 1) scrollFraction = 1;
-
-                let frameIndex = Math.min(
-                    totalFrames - 1,
-                    Math.floor(scrollFraction * totalFrames)
-                );
-                updateUI(scrollFraction, frameIndex);
-            });
-            // Trigger initial state for Desktop
-            window.dispatchEvent(new Event('scroll'));
-        }
-
-        // 3. QR Code Logic for Details Page
-        const qrCodeBtn = document.getElementById('qrCodeBtnDetails');
-        const qrModal = document.getElementById('qrModal');
-        const qrLinkInput = document.getElementById('qrLinkInput');
-        const qrImage = document.getElementById('qrImage');
-        const qrPreview = document.getElementById('qrPreview');
-        const closeQrModalBtn = document.getElementById('closeQrModalBtn');
-
-        let currentQrLink = '';
-
-        if (qrCodeBtn) {
-            qrCodeBtn.addEventListener('click', () => {
-                qrModal.style.display = 'flex';
-                qrLinkInput.value = ''; // Reset to empty
-                qrPreview.style.display = 'none'; // Hide preview until manual entry
-                setTimeout(() => qrLinkInput.focus(), 100);
-            });
-        }
-
-        if (closeQrModalBtn) {
-            closeQrModalBtn.addEventListener('click', () => {
-                qrModal.style.display = 'none';
-            });
-        }
-
-        qrModal.addEventListener('click', (e) => {
-            if (e.target === qrModal) qrModal.style.display = 'none';
-        });
-
-        let qrDebounce;
-        qrLinkInput.addEventListener('input', () => {
-            clearTimeout(qrDebounce);
-            const link = qrLinkInput.value.trim();
-            if (!link) { qrPreview.style.display = 'none'; return; }
-            qrDebounce = setTimeout(() => {
-                currentQrLink = link;
-                const encodedLink = encodeURIComponent(link);
-                const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodedLink}&margin=10`;
-                qrImage.src = apiUrl;
-                qrPreview.style.display = 'block';
-            }, 600);
-        });
-
-        async function downloadQR(format) {
-            if (!currentQrLink) return;
-            
-            const fetchFormat = format === 'pdf' ? 'png' : format;
-            const encodedLink = encodeURIComponent(currentQrLink);
-            const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&format=${fetchFormat}&data=${encodedLink}&margin=20`;
-            
-            let btnId = 'qrDown' + (format === 'jpeg' ? 'JPG' : format.toUpperCase());
-            const btn = document.getElementById(btnId);
-            
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `<ion-icon name="hourglass-outline"></ion-icon>...`;
-            btn.disabled = true;
-
-            try {
-                const res = await fetch(apiUrl);
-                if (!res.ok) throw new Error('Network response was not ok');
-                const blob = await res.blob();
-                
-                if (format === 'pdf') {
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: [100, 100] });
-                    
-                    const reader = new FileReader();
-                    reader.readAsDataURL(blob);
-                    reader.onloadend = () => {
-                        const base64data = reader.result;
-                        doc.addImage(base64data, 'PNG', 10, 10, 80, 80);
-                        doc.save(`QRCode.pdf`);
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
-                    }
-                } else {
-                    const blobUrl = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = blobUrl;
-                    a.download = `QRCode.${format}`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(blobUrl);
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }
-            } catch (err) {
-                console.error('Download error:', err);
-                btn.innerHTML = `<ion-icon name="alert-circle-outline"></ion-icon>`;
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }, 2000);
-            }
-        }
-
-        document.getElementById('qrDownPNG').addEventListener('click', () => downloadQR('png'));
-        document.getElementById('qrDownJPG').addEventListener('click', () => downloadQR('jpeg'));
-        document.getElementById('qrDownPDF').addEventListener('click', () => downloadQR('pdf'));
-    </script>
+    <!-- View Selector Bubble (Floating Menu) -->
+    <div id="viewSelectorBubble" class="view-selector-bubble glass-morphism" style="display: none;">
+        <!-- States: 4, 3, 1, list, auto -->
+        <div class="view-option" data-view="4" title="4 Columns">
+            <ion-icon name="browsers-outline"></ion-icon>
+        </div>
+        <div class="view-option" data-view="3" title="3 Columns">
+            <ion-icon name="apps-outline"></ion-icon>
+        </div>
+        <div class="view-option" data-view="1" title="1 Column">
+            <ion-icon name="square-outline"></ion-icon>
+        </div>
+        <div class="view-option" data-view="list" title="Rows (List)">
+            <ion-icon name="list-outline"></ion-icon>
+        </div>
+        <div class="view-option" data-view="auto" title="Adaptive Grid">
+            <ion-icon name="grid-outline"></ion-icon>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
 </body>
+
 </html>
