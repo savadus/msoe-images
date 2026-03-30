@@ -56,7 +56,7 @@ const upload = multer({
 
 // Admin: Create a folder (Stack)
 app.post('/api/folders', async (req, res) => {
-    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    if (req.body.adminPassword !== '656565') return res.status(401).json({ success: false, msg: 'Unauthorized' });
     const { name, password, category, parentId } = req.body;
     if (!name) return res.status(400).json({ success: false, msg: 'Folder name required' });
     
@@ -86,7 +86,7 @@ app.get('/api/cloudinary-config', (req, res) => {
 
 // Admin: Save Image Metadata (After Direct-to-Cloud Upload)
 app.post('/api/image-metadata', async (req, res) => {
-    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    if (req.body.adminPassword !== '656565') return res.status(401).json({ success: false, msg: 'Unauthorized' });
     const { folderId, name, url, publicId } = req.body;
     
     try {
@@ -109,7 +109,7 @@ app.post('/api/image-metadata', async (req, res) => {
 app.post('/api/upload', async (req, res) => {
     upload(req, res, async (err) => {
         if (err) return res.status(400).json({ success: false, msg: err.toString() });
-        if (req.body.password !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized!' });
+        if (req.body.password !== '656565') return res.status(401).json({ success: false, msg: 'Unauthorized!' });
         if (!req.files || req.files.length === 0) return res.status(400).json({ success: false, msg: 'No Files Selected!' });
         
         const folderId = req.body.folderId || 'default';
@@ -183,7 +183,7 @@ app.post('/api/folders/:id/images', async (req, res) => {
         if (fErr || !folder) throw new Error('Stack not found');
         
         // Admin Access Bypass: If Admin Password is provided, ignore folder password
-        const isAdmin = req.body.adminPassword === '222879';
+        const isAdmin = req.body.adminPassword === '656565';
         if (!isAdmin && folder.password && folder.password !== password) {
             return res.status(401).json({ success: false, msg: 'Incorrect password' });
         }
@@ -220,7 +220,7 @@ app.post('/api/chat', async (req, res) => {
 // --- ADMIN CONTROLS (DELETE/RENAME) ---
 
 app.post('/api/folders/:id/pin', async (req, res) => {
-    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    if (req.body.adminPassword !== '656565') return res.status(401).json({ success: false, msg: 'Unauthorized' });
     try {
         const { data: folder, error: gErr } = await supabase.from('folders').select('isPinned').eq('id', req.params.id).single();
         if (gErr) throw gErr;
@@ -232,7 +232,7 @@ app.post('/api/folders/:id/pin', async (req, res) => {
 });
 
 app.post('/api/folders/:id/rename', async (req, res) => {
-    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    if (req.body.adminPassword !== '656565') return res.status(401).json({ success: false, msg: 'Unauthorized' });
     const { newName, newPassword } = req.body;
     try {
         const updateData = {};
@@ -247,7 +247,7 @@ app.post('/api/folders/:id/rename', async (req, res) => {
 });
 
 app.post('/api/folders/:id/move', async (req, res) => {
-    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    if (req.body.adminPassword !== '656565') return res.status(401).json({ success: false, msg: 'Unauthorized' });
     try {
         const { error } = await supabase.from('folders').update({ parentId: req.body.parentId === 'root' ? null : req.body.parentId }).eq('id', req.params.id);
         if (error) throw error;
@@ -256,7 +256,7 @@ app.post('/api/folders/:id/move', async (req, res) => {
 });
 
 app.delete('/api/folders/:id', async (req, res) => {
-    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    if (req.body.adminPassword !== '656565') return res.status(401).json({ success: false, msg: 'Unauthorized' });
     try {
         // Delete all images from Cloudinary first
         const { data: imgs } = await supabase.from('images').select('publicId').eq('folderId', req.params.id);
@@ -273,7 +273,7 @@ app.delete('/api/folders/:id', async (req, res) => {
 });
 
 app.delete('/api/images', async (req, res) => {
-    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    if (req.body.adminPassword !== '656565') return res.status(401).json({ success: false, msg: 'Unauthorized' });
     try {
         const { data: img } = await supabase.from('images').select('publicId').eq('name', req.body.filename).eq('folderId', req.body.folderId).single();
         if (img) await cloudinary.uploader.destroy(img.publicId);
@@ -284,7 +284,7 @@ app.delete('/api/images', async (req, res) => {
 
 // Admin: Get all chats
 app.post('/api/admin/chats', async (req, res) => {
-    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    if (req.body.adminPassword !== '656565') return res.status(401).json({ success: false, msg: 'Unauthorized' });
     try {
         const { data: chats, error } = await supabase.from('chats').select('*').order('createdAt', { ascending: false });
         if (error) throw error;
@@ -293,7 +293,7 @@ app.post('/api/admin/chats', async (req, res) => {
 });
 
 app.post('/api/admin/chat/mark-viewed', async (req, res) => {
-    if (req.body.adminPassword !== '222879') return res.status(401).json({ success: false, msg: 'Unauthorized' });
+    if (req.body.adminPassword !== '656565') return res.status(401).json({ success: false, msg: 'Unauthorized' });
     try {
         await supabase.from('chats').update({ viewed: true }).eq('id', req.body.chatId);
         res.json({ success: true });

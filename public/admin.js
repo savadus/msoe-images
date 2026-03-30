@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Handle Login Logic
     async function performAdminUnlock(pass) {
-        if (pass === '222879') { 
+        if (pass === '656565') { 
             sessionPassword = pass; 
             authContainer.style.display = 'none';
             mainDashboard.style.display = 'block';
@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const val = passwordInput.value;
         if (val.length === 6) {
             const success = await performAdminUnlock(val);
-            if (!success && val === '222879') {
+            if (!success && val === '656565') {
                 // This shouldn't happen unless password changed
             } else if (!success) {
                 // We don't show error automatically on 6 chars to avoid flickering while typing,
