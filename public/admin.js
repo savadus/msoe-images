@@ -92,10 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const enableBiometricBtn = document.getElementById('enableBiometricBtn');
     const skipBiometricBtn = document.getElementById('skipBiometricBtn');
 
+    const disableBiometricBtn = document.getElementById('disableBiometricBtn');
+
     function checkBiometricSupport() {
         if (window.PublicKeyCredential && localStorage.getItem('biometric_id')) {
             biometricSelectionOption.style.display = 'block';
             faceSelectionOption.style.display = 'block';
+            if (disableBiometricBtn) disableBiometricBtn.style.display = 'flex';
         }
     }
     checkBiometricSupport();
@@ -316,6 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // For this local app, let's just store the plain password for demo
                 localStorage.setItem('admin_secret', sessionPassword);
                 biometricSetupPromo.style.display = 'none';
+                if (disableBiometricBtn) disableBiometricBtn.style.display = 'flex';
                 showCustomAlert('Biometrics Enabled', 'Biometric login enabled successfully!');
             }
         } catch (err) {
@@ -390,6 +394,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     selectFingerprintBtn.addEventListener('click', () => triggerBiometricAuth('finger'));
     selectFaceBtn.addEventListener('click', () => triggerBiometricAuth('face'));
+
+    // Disable Biometrics Logic
+    if (disableBiometricBtn) {
+        disableBiometricBtn.addEventListener('click', () => {
+            showCustomConfirm('Disable Biometric Lock?', 
+                'Are you sure you want to remove Face ID and Fingerprint login from this device?', 
+                () => {
+                    localStorage.removeItem('biometric_id');
+                    localStorage.removeItem('admin_secret');
+                    disableBiometricBtn.style.display = 'none';
+                    biometricSelectionOption.style.display = 'none';
+                    faceSelectionOption.style.display = 'none';
+                    showCustomAlert('Lock Removed', 'Biometric authentication has been disabled on this device.');
+                }
+            );
+        });
+    }
 
     // Handle Tabs
     tabStacksBtn.addEventListener('click', () => {

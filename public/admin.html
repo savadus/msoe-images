@@ -132,10 +132,15 @@
 
             <!-- Tabs -->
             <div class="admin-tabs"
-                style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; align-items: center;">
                 <button id="tabStacksBtn" class="btn btn-primary">Manage Stacks</button>
                 <button id="tabFeedbackBtn" class="btn"
                     style="background: transparent; color: var(--text-secondary);">User Feedback Logs</button>
+                
+                <button id="disableBiometricBtn" class="btn" 
+                    style="margin-left: auto; background: rgba(255, 123, 114, 0.1); color: #ff7b72; font-size: 0.8rem; padding: 0.4rem 1rem; display: none; border: 1px solid rgba(255, 123, 114, 0.2);">
+                    <ion-icon name="lock-open-outline" style="margin-right: 0.3rem;"></ion-icon> Remove Biometric Lock
+                </button>
             </div>
 
             <!-- Tab 1: Stacks View -->
