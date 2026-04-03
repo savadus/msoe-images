@@ -338,14 +338,14 @@ document.addEventListener('DOMContentLoaded', () => {
     selectPasswordBtn.addEventListener('click', () => {
         authSelectionView.style.display = 'none';
         passwordEntryView.style.display = 'block';
+        passwordInput.value = ''; // Start fresh
         passwordInput.focus();
-        // Fallback for some mobile browsers
-        setTimeout(() => passwordInput.focus(), 50);
+        // Browser hack for stubborn focus issues
+        setTimeout(() => { if (passwordInput) passwordInput.focus(); }, 100);
     });
 
-    // Make the entire password entry card focus the input when tapped 
+    // Tap anywhere on the card to focus the input again
     passwordEntryView.addEventListener('click', (e) => {
-        // Don't interfere with the back button or the input itself
         if (e.target !== backToSelectionBtn && !backToSelectionBtn.contains(e.target)) {
             passwordInput.focus();
         }
