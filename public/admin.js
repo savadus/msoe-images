@@ -1271,7 +1271,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadFeedback() {
         try {
-            const res = await fetch('/api/admin/chat', {
+            const res = await fetch('/api/admin/chats', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ adminPassword: sessionPassword })
