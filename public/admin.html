@@ -24,10 +24,13 @@
     <div id="biometricScanOverlay" class="biometric-scan-overlay">
         <div class="scanner-container">
             <div class="scanner-line"></div>
-            <ion-icon name="finger-print" class="scanner-fingerprint"></ion-icon>
+            <div id="scannerIconContainer">
+                <ion-icon name="finger-print" id="scannerIconFinger" class="scanner-fingerprint"></ion-icon>
+                <ion-icon name="face-recognition" id="scannerIconFace" class="scanner-fingerprint" style="display: none;"></ion-icon>
+            </div>
         </div>
         <div class="scanner-text">Scanning Biometrics...</div>
-        <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">Touch your sensor to unlock</p>
+        <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">Authenticate to unlock</p>
     </div>
 
     <header>
@@ -79,6 +82,15 @@
                         <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--accent-color); font-weight: 500;">
                             Touch ID</p>
                     </div>
+                    <!-- Face ID Button (Selection Mode) -->
+                    <div id="faceSelectionOption" style="text-align: center; display: none;">
+                        <button id="selectFaceBtn" class="btn-icon"
+                            style="width: 80px; height: 80px; border-radius: 50%; background: rgba(163, 113, 247, 0.1); color: #a371f7; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(163,113,247,0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; box-shadow: 0 0 20px rgba(163,113,247,0.15);">
+                            <ion-icon name="face-recognition-outline"></ion-icon>
+                        </button>
+                        <p style="margin-top: 1rem; font-size: 0.8rem; color: #a371f7; font-weight: 500;">
+                            Face ID</p>
+                    </div>
                 </div>
             </div>
 
@@ -104,11 +116,10 @@
             <div id="biometricSetupPromo" class="glass-morphism"
                 style="margin-bottom: 2rem; padding: 1.2rem; display: none; align-items: center; justify-content: space-between; border: 1px solid rgba(88, 166, 255, 0.3); background: rgba(88, 166, 255, 0.05);">
                 <div style="display: flex; align-items: center; gap: 1rem;">
-                    <ion-icon name="finger-print" style="font-size: 2rem; color: var(--accent-color);"></ion-icon>
+                    <ion-icon name="shield-checkmark" style="font-size: 2rem; color: var(--accent-color);"></ion-icon>
                     <div>
-                        <h4 style="margin: 0; color: #fff;">Enable Fingerprint Login?</h4>
-                        <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">Unlock this dashboard
-                            faster on this device.</p>
+                        <h4 style="margin: 0; color: #fff;">Enable Face ID or Fingerprint?</h4>
+                        <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">Unlock this dashboard faster with biometrics on this device.</p>
                     </div>
                 </div>
                 <div style="display: flex; gap: 0.5rem;">

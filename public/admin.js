@@ -83,8 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordEntryView = document.getElementById('passwordEntryView');
     const selectPasswordBtn = document.getElementById('selectPasswordBtn');
     const selectFingerprintBtn = document.getElementById('selectFingerprintBtn');
+    const selectFaceBtn = document.getElementById('selectFaceBtn');
     const backToSelectionBtn = document.getElementById('backToSelectionBtn');
     const biometricSelectionOption = document.getElementById('biometricSelectionOption');
+    const faceSelectionOption = document.getElementById('faceSelectionOption');
 
     const biometricSetupPromo = document.getElementById('biometricSetupPromo');
     const enableBiometricBtn = document.getElementById('enableBiometricBtn');
@@ -93,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function checkBiometricSupport() {
         if (window.PublicKeyCredential && localStorage.getItem('biometric_id')) {
             biometricSelectionOption.style.display = 'block';
+            faceSelectionOption.style.display = 'block';
         }
     }
     checkBiometricSupport();
@@ -338,10 +341,18 @@ document.addEventListener('DOMContentLoaded', () => {
         authError.style.display = 'none';
     });
 
-    selectFingerprintBtn.addEventListener('click', async () => {
+    // Shared Biometric Handler
+    async function triggerBiometricAuth(type = 'finger') {
         const scannerOverlay = document.getElementById('biometricScanOverlay');
+        const iconFinger = document.getElementById('scannerIconFinger');
+        const iconFace = document.getElementById('scannerIconFace');
+        
         try {
-            // Show scanning UI instantly
+            // Setup overlay icons
+            iconFinger.style.display = (type === 'finger') ? 'block' : 'none';
+            iconFace.style.display = (type === 'face') ? 'block' : 'none';
+            
+            // Show scanning UI
             scannerOverlay.style.display = 'flex';
             
             const challenge = new Uint8Array(32);
@@ -369,15 +380,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (err) {
             console.error('Biometric login failed:', err);
-            // Don't alert if cancelled by user
             if (err.name !== 'NotAllowedError') {
-                showCustomAlert('Auth Failed', 'Biometric authentication failed.', { icon: 'finger-print-outline', color: '#ff7b72', bg: 'rgba(255, 123, 114, 0.1)' });
+                showCustomAlert('Auth Failed', 'Biometric authentication failed.', { icon: (type ==='face' ? 'face-recognition-outline' : 'finger-print-outline'), color: '#ff7b72', bg: 'rgba(255, 123, 114, 0.1)' });
             }
         } finally {
-            // Hide scanning UI
             scannerOverlay.style.display = 'none';
         }
-    });
+    }
+
+    selectFingerprintBtn.addEventListener('click', () => triggerBiometricAuth('finger'));
+    selectFaceBtn.addEventListener('click', () => triggerBiometricAuth('face'));
 
     // Handle Tabs
     tabStacksBtn.addEventListener('click', () => {
