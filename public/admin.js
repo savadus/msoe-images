@@ -347,14 +347,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Shared Biometric Handler
     async function triggerBiometricAuth(type = 'finger') {
+        if (type === 'face') {
+            await triggerFaceScan();
+            return;
+        }
+
         const scannerOverlay = document.getElementById('biometricScanOverlay');
         const iconFinger = document.getElementById('scannerIconFinger');
-        const iconFace = document.getElementById('scannerIconFace');
         
         try {
             // Setup overlay icons
-            iconFinger.style.display = (type === 'finger') ? 'block' : 'none';
-            iconFace.style.display = (type === 'face') ? 'block' : 'none';
+            iconFinger.style.display = 'block';
             
             // Show scanning UI
             scannerOverlay.style.display = 'flex';
@@ -385,10 +388,75 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Biometric login failed:', err);
             if (err.name !== 'NotAllowedError') {
-                showCustomAlert('Auth Failed', 'Biometric authentication failed.', { icon: (type ==='face' ? 'face-recognition-outline' : 'finger-print-outline'), color: '#ff7b72', bg: 'rgba(255, 123, 114, 0.1)' });
+                showCustomAlert('Auth Failed', 'Biometric authentication failed.', { icon: 'finger-print-outline', color: '#ff7b72', bg: 'rgba(255, 123, 114, 0.1)' });
             }
         } finally {
             scannerOverlay.style.display = 'none';
+        }
+    }
+
+    async function triggerFaceScan() {
+        const overlay = document.getElementById('faceScanOverlay');
+        const video = document.getElementById('faceVideo');
+        const status = document.getElementById('faceScanStatus');
+        const cancelBtn = document.getElementById('cancelFaceBtn');
+        let stream = null;
+
+        const stopCamera = () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            overlay.style.display = 'none';
+        };
+
+        cancelBtn.onclick = stopCamera;
+
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+            video.srcObject = stream;
+            overlay.style.display = 'flex';
+
+            // Phase 1: Pre-scan Align
+            status.textContent = 'ALIGNING...';
+            await new Promise(r => setTimeout(r, 1500));
+
+            // Phase 2: Scanning Effect
+            status.textContent = 'SCANNING ARCHITECTURE...';
+            await new Promise(r => setTimeout(r, 2000));
+
+            // Phase 3: Final System Biometric Verification
+            status.textContent = 'VERIFYING IDENTITY...';
+            
+            const challenge = new Uint8Array(32);
+            window.crypto.getRandomValues(challenge);
+            const publicKeyCredentialRequestOptions = {
+                challenge,
+                allowCredentials: [{
+                    id: Uint8Array.from(atob(localStorage.getItem('biometric_id').replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0)),
+                    type: 'public-key'
+                }],
+                timeout: 60000,
+            };
+
+            const assertion = await navigator.credentials.get({
+                publicKey: publicKeyCredentialRequestOptions
+            });
+
+            if (assertion) {
+                stopCamera();
+                const storedSecret = localStorage.getItem('admin_secret');
+                const success = await performAdminUnlock(storedSecret);
+                if (!success) {
+                    showCustomAlert('Security Error', 'Face ID linked to invalid credentials.', { icon: 'lock-closed-outline' });
+                }
+            }
+        } catch (err) {
+            console.error('Face ID failed:', err);
+            stopCamera();
+            if (err.name !== 'NotAllowedError') {
+                showCustomAlert('Face ID Error', 'Verification failed or camera access denied.', { icon: 'face-recognition-outline', color: '#ff7b72', bg: 'rgba(255, 123, 114, 0.1)' });
+            }
         }
     }
 

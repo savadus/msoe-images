@@ -20,17 +20,28 @@
         }
         localStorage.setItem('theme', 'dark');
     </script>
-    <!-- Biometric Scanning Overlay -->
+    <!-- Biometric Scanning Overlays -->
     <div id="biometricScanOverlay" class="biometric-scan-overlay">
         <div class="scanner-container">
             <div class="scanner-line"></div>
             <div id="scannerIconContainer">
                 <ion-icon name="finger-print" id="scannerIconFinger" class="scanner-fingerprint"></ion-icon>
-                <ion-icon name="face-recognition" id="scannerIconFace" class="scanner-fingerprint" style="display: none;"></ion-icon>
             </div>
         </div>
         <div class="scanner-text">Scanning Biometrics...</div>
-        <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">Authenticate to unlock</p>
+        <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">Touch your sensor to unlock</p>
+    </div>
+
+    <!-- Cinematic Face ID Scanner -->
+    <div id="faceScanOverlay" class="biometric-scan-overlay" style="background: rgba(0,0,0,0.9);">
+        <div class="face-scanner-container" style="position: relative; width: 280px; height: 280px; border-radius: 50%; overflow: hidden; border: 2px solid #a371f7; box-shadow: 0 0 30px rgba(163, 115, 247, 0.4);">
+            <video id="faceVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(0.5) contrast(1.2);"></video>
+            <div class="scanner-line" style="background: linear-gradient(90deg, transparent, #a371f7, transparent); box-shadow: 0 0 20px #a371f7; height: 6px;"></div>
+            <div class="face-grid-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background: repeating-linear-gradient(rgba(163,115,247,0.05) 0, rgba(163,115,247,0.05) 1px, transparent 1px, transparent 20px), repeating-linear-gradient(90deg, rgba(163,115,247,0.05) 0, rgba(163,115,247,0.05) 1px, transparent 1px, transparent 20px); pointer-events: none;"></div>
+        </div>
+        <div class="scanner-text" style="color: #a371f7; margin-top: 2rem;">Face ID Verification...</div>
+        <div id="faceScanStatus" style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem; letter-spacing: 1px;">ALIGN YOUR FACE WITHIN THE CIRCLE</div>
+        <button id="cancelFaceBtn" class="btn" style="position: absolute; bottom: 3rem; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--text-secondary);">Cancel</button>
     </div>
 
     <header>
