@@ -338,17 +338,10 @@ document.addEventListener('DOMContentLoaded', () => {
     selectPasswordBtn.addEventListener('click', () => {
         authSelectionView.style.display = 'none';
         passwordEntryView.style.display = 'block';
-        passwordInput.value = ''; // Start fresh
+        passwordInput.value = ''; 
+        // We let the native Label handle the click-to-focus for now, 
+        // but try one focus call for auto-opening if possible.
         passwordInput.focus();
-        // Browser hack for stubborn focus issues
-        setTimeout(() => { if (passwordInput) passwordInput.focus(); }, 100);
-    });
-
-    // Tap anywhere on the card to focus the input again
-    passwordEntryView.addEventListener('click', (e) => {
-        if (e.target !== backToSelectionBtn && !backToSelectionBtn.contains(e.target)) {
-            passwordInput.focus();
-        }
     });
 
     backToSelectionBtn.addEventListener('click', () => {
