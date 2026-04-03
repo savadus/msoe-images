@@ -319,40 +319,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Biometric Logic ---
     async function registerBiometrics(label = 'Biometrics') {
-        try {
-            const challenge = new Uint8Array(32);
-            window.crypto.getRandomValues(challenge);
-            const userID = new Uint8Array(16);
-            window.crypto.getRandomValues(userID);
+        if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+            showCustomAlert('Secure Access Required', 'Face ID and Touch ID require an HTTPS connection when working on external IPs or mobile.', { icon: 'lock-closed-outline', color: '#ff7b72' });
+            return;
+        }
 
-            const publicKeyCredentialCreationOptions = {
+        try {
+            const challenge = crypto.getRandomValues(new Uint8Array(32));
+            const userID = crypto.getRandomValues(new Uint8Array(16));
+
+            const options = {
                 challenge,
-                rp: { name: "Msoe Clicks", id: window.location.hostname },
-                user: {
-                    id: userID,
-                    name: "admin",
-                    displayName: "Gallery Admin"
-                },
-                pubKeyCredParams: [{ alg: -7, type: "public-key" }],
-                authenticatorSelection: { authenticatorAttachment: "platform" },
-                timeout: 60000,
-                attestation: "direct"
+                rp: { name: "Msoe Clicks" },
+                user: { id: userID, name: "admin", displayName: "Msoe Admin" },
+                pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+                authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+                timeout: 60000
             };
 
-            const credential = await navigator.credentials.create({
-                publicKey: publicKeyCredentialCreationOptions
-            });
+            const credential = await navigator.credentials.create({ publicKey: options });
 
             if (credential) {
-                localStorage.setItem('biometric_id', credential.id);
+                // Manually encode rawId to base64url for cross-platform reliability
+                const rawId = new Uint8Array(credential.rawId);
+                let binary = '';
+                for (let i = 0; i < rawId.byteLength; i++) binary += String.fromCharCode(rawId[i]);
+                const base64url = btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+                
+                localStorage.setItem('biometric_id', base64url);
                 localStorage.setItem('admin_secret', sessionPassword);
+                
                 biometricSetupPromo.style.display = 'none';
                 if (disableBiometricBtn) disableBiometricBtn.style.display = 'flex';
-                showCustomAlert(`${label} Enabled`, `${label} login enabled successfully!`);
+                showCustomAlert(`${label} Enabled`, `You can now use ${label} to unlock.`, { icon: 'checkmark-circle-outline' });
             }
         } catch (err) {
-            console.error('Biometric registration failed:', err);
-            showCustomAlert('Error', 'Could not enable sensor: ' + err.message, { icon: 'alert-circle-outline', color: '#ff7b72', bg: 'rgba(255, 123, 114, 0.1)' });
+            console.error('Sensor error:', err);
+            showCustomAlert('Sensor Busy', err.message || 'Setup was interrupted. Please try again.', { icon: 'alert-circle-outline' });
         }
     }
 
@@ -379,6 +382,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Shared Biometric Handler
     async function triggerBiometricAuth(type = 'finger') {
+        if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+            showCustomAlert('Secure Context Required', 'Please use 127.0.0.1 or an HTTPS domain to use biometrics.', { icon: 'lock-closed-outline' });
+            return;
+        }
+
         if (type === 'face') {
             await triggerFaceScan();
             return;
