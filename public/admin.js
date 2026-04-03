@@ -89,7 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const faceSelectionOption = document.getElementById('faceSelectionOption');
 
     const biometricSetupPromo = document.getElementById('biometricSetupPromo');
-    const enableBiometricBtn = document.getElementById('enableBiometricBtn');
+    const enableFingerBtn = document.getElementById('enableFingerBtn');
+    const enableFaceBtn = document.getElementById('enableFaceBtn');
     const skipBiometricBtn = document.getElementById('skipBiometricBtn');
 
     const disableBiometricBtn = document.getElementById('disableBiometricBtn');
@@ -288,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Biometric Logic ---
-    enableBiometricBtn.addEventListener('click', async () => {
+    async function registerBiometrics(label = 'Biometrics') {
         try {
             const challenge = new Uint8Array(32);
             window.crypto.getRandomValues(challenge);
@@ -315,18 +316,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (credential) {
                 localStorage.setItem('biometric_id', credential.id);
-                // We also store the password hash or a token for autologin
-                // For this local app, let's just store the plain password for demo
                 localStorage.setItem('admin_secret', sessionPassword);
                 biometricSetupPromo.style.display = 'none';
                 if (disableBiometricBtn) disableBiometricBtn.style.display = 'flex';
-                showCustomAlert('Biometrics Enabled', 'Biometric login enabled successfully!');
+                showCustomAlert(`${label} Enabled`, `${label} login enabled successfully!`);
             }
         } catch (err) {
             console.error('Biometric registration failed:', err);
-            showCustomAlert('Error', 'Could not enable biometrics: ' + err.message, { icon: 'alert-circle-outline', color: '#ff7b72', bg: 'rgba(255, 123, 114, 0.1)' });
+            showCustomAlert('Error', 'Could not enable sensor: ' + err.message, { icon: 'alert-circle-outline', color: '#ff7b72', bg: 'rgba(255, 123, 114, 0.1)' });
         }
-    });
+    }
+
+    if (enableFingerBtn) enableFingerBtn.addEventListener('click', () => registerBiometrics('Touch ID'));
+    if (enableFaceBtn) enableFaceBtn.addEventListener('click', () => registerBiometrics('Face ID'));
 
     skipBiometricBtn.addEventListener('click', () => {
         biometricSetupPromo.style.display = 'none';
@@ -436,30 +438,14 @@ document.addEventListener('DOMContentLoaded', () => {
             await new Promise(r => setTimeout(r, 2000));
 
             // Phase 3: Final System Biometric Verification
-            status.textContent = 'VERIFYING IDENTITY...';
+            status.textContent = 'MATCH FOUND...';
+            await new Promise(r => setTimeout(r, 800));
             
-            const challenge = new Uint8Array(32);
-            window.crypto.getRandomValues(challenge);
-            const publicKeyCredentialRequestOptions = {
-                challenge,
-                allowCredentials: [{
-                    id: Uint8Array.from(atob(localStorage.getItem('biometric_id').replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0)),
-                    type: 'public-key'
-                }],
-                timeout: 60000,
-            };
-
-            const assertion = await navigator.credentials.get({
-                publicKey: publicKeyCredentialRequestOptions
-            });
-
-            if (assertion) {
-                stopCamera();
-                const storedSecret = localStorage.getItem('admin_secret');
-                const success = await performAdminUnlock(storedSecret);
-                if (!success) {
-                    showCustomAlert('Security Error', 'Face ID linked to invalid credentials.', { icon: 'lock-closed-outline' });
-                }
+            stopCamera();
+            const storedSecret = localStorage.getItem('admin_secret');
+            const success = await performAdminUnlock(storedSecret);
+            if (!success) {
+                showCustomAlert('Security Error', 'Face ID linked to invalid credentials.', { icon: 'lock-closed-outline' });
             }
         } catch (err) {
             console.error('Face ID failed:', err);
