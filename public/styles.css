@@ -1515,3 +1515,41 @@ header {
     84% { width: 55px; right: 0; top: 35px; }
     100% { width: 47px; right: 8px; top: 38px; }
 }
+
+/* PIN Pad Styles */
+.pin-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+.pin-dot.active {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 10px var(--accent-color);
+    transform: scale(1.2);
+}
+.pin-btn {
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.pin-btn:active {
+    background: var(--accent-color);
+    transform: scale(0.9);
+    border-color: var(--accent-color);
+}
+.pin-btn ion-icon {
+    font-size: 1.8rem;
+}
+

@@ -249,6 +249,47 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
+    // --- PIN Pad Logic ---
+    const pinDots = document.querySelectorAll('.pin-dot');
+    const pinButtons = document.querySelectorAll('.pin-btn');
+    let enteredPin = "";
+
+    function updatePinDots() {
+        pinDots.forEach((dot, i) => {
+            if (i < enteredPin.length) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+    }
+
+    pinButtons.forEach(btn => {
+        btn.onclick = async () => {
+            const val = btn.dataset.val;
+            if (val === 'clear') {
+                enteredPin = "";
+            } else if (val === 'del') {
+                enteredPin = enteredPin.slice(0, -1);
+            } else if (enteredPin.length < 6) {
+                enteredPin += val;
+                if (window.navigator.vibrate) window.navigator.vibrate(10);
+            }
+
+            updatePinDots();
+            if (authError) authError.style.display = 'none';
+
+            if (enteredPin.length === 6) {
+                const success = await performAdminUnlock(enteredPin);
+                if (!success) {
+                    if (authError) authError.style.display = 'block';
+                    enteredPin = "";
+                    setTimeout(updatePinDots, 500);
+                }
+            }
+        };
+    });
+
     // 1. Handle Login Logic
     async function performAdminUnlock(pass) {
         if (pass === '656565') { 
@@ -273,20 +314,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    passwordInput.addEventListener('input', async () => {
-        authError.style.display = 'none'; // Clear error while typing
-        const val = passwordInput.value;
-        if (val.length === 6) {
-            const success = await performAdminUnlock(val);
-            if (!success && val === '656565') {
-                // This shouldn't happen unless password changed
-            } else if (!success) {
-                // We don't show error automatically on 6 chars to avoid flickering while typing,
-                // but if they hit 6 and it's wrong, we can let the button handle it or show error.
-                // For now, let's just let the user click login if it doesn't auto-unlock.
-            }
-        }
-    });
+    // PIN pad replaces the input listener.
+
 
     // --- Biometric Logic ---
     async function registerBiometrics(label = 'Biometrics') {
@@ -338,10 +367,8 @@ document.addEventListener('DOMContentLoaded', () => {
     selectPasswordBtn.addEventListener('click', () => {
         authSelectionView.style.display = 'none';
         passwordEntryView.style.display = 'block';
-        passwordInput.value = ''; 
-        // We let the native Label handle the click-to-focus for now, 
-        // but try one focus call for auto-opening if possible.
-        passwordInput.focus();
+        enteredPin = ""; 
+        updatePinDots();
     });
 
     backToSelectionBtn.addEventListener('click', () => {
