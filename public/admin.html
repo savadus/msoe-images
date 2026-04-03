@@ -80,7 +80,7 @@
                     <div style="text-align: center;">
                         <button id="selectPasswordBtn" class="btn-icon"
                             style="width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.05); color: #fff; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; box-shadow: var(--shadow-sm);">
-                            <ion-icon name="lock-closed-outline"></ion-icon>
+                            <ion-icon name="lock-closed-outline" style="pointer-events: none;"></ion-icon>
                         </button>
                         <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-secondary);">Password</p>
                     </div>
@@ -88,7 +88,7 @@
                     <div id="biometricSelectionOption" style="text-align: center; display: none;">
                         <button id="selectFingerprintBtn" class="btn-icon"
                             style="width: 80px; height: 80px; border-radius: 50%; background: rgba(88, 166, 255, 0.1); color: var(--accent-color); font-size: 2.5rem; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(88,166,255,0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; box-shadow: 0 0 20px rgba(88,166,255,0.15);">
-                            <ion-icon name="finger-print-outline"></ion-icon>
+                            <ion-icon name="finger-print-outline" style="pointer-events: none;"></ion-icon>
                         </button>
                         <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--accent-color); font-weight: 500;">
                             Touch ID</p>
@@ -97,7 +97,7 @@
                     <div id="faceSelectionOption" style="text-align: center; display: none;">
                         <button id="selectFaceBtn" class="btn-icon"
                             style="width: 80px; height: 80px; border-radius: 50%; background: rgba(163, 113, 247, 0.1); color: #a371f7; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(163,113,247,0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; box-shadow: 0 0 20px rgba(163,113,247,0.15);">
-                            <ion-icon name="face-recognition-outline"></ion-icon>
+                            <ion-icon name="face-recognition-outline" style="pointer-events: none;"></ion-icon>
                         </button>
                         <p style="margin-top: 1rem; font-size: 0.8rem; color: #a371f7; font-weight: 500;">
                             Face ID</p>
@@ -114,7 +114,7 @@
                 <ion-icon name="key-outline"
                     style="font-size: 3rem; color: var(--accent-color); margin-bottom: 1rem;"></ion-icon>
                 <h2 style="margin-bottom: 1.5rem;">Enter Code</h2>
-                <input type="password" id="passwordInput" placeholder="••••••••"
+                <input type="password" id="passwordInput" placeholder="••••••••" inputmode="numeric" pattern="[0-9]*"
                     style="width: 100%; padding: 1rem; margin-bottom: 0.5rem; border-radius: 12px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.3); color: white; text-align: center; font-size: 1.2rem; letter-spacing: 4px;">
                 <div id="authError" style="color: #ff7b72; margin-top: 1rem; display: none;">Incorrect password</div>
             </div>

@@ -336,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selectPasswordBtn.addEventListener('click', () => {
         authSelectionView.style.display = 'none';
         passwordEntryView.style.display = 'block';
-        passwordInput.focus();
+        setTimeout(() => passwordInput.focus(), 100);
     });
 
     backToSelectionBtn.addEventListener('click', () => {
