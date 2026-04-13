@@ -242,7 +242,12 @@
         <div class="lightbox-content" style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
             <button id="lightboxClose" class="lightbox-btn" style="position: absolute; top: 20px; right: 20px;"><ion-icon name="close"></ion-icon></button>
             <button id="lightboxPrev" class="lightbox-nav-btn" style="left: 20px;"><ion-icon name="arrow-back-outline"></ion-icon></button>
-            <img id="lightboxImg" src="" alt="Preview" style="max-width: 90vw; max-height: 80vh; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); object-fit: contain;">
+            
+            <div id="lightboxMediaContainer" style="max-width: 90vw; max-height: 80vh; position: relative; display: flex; align-items: center; justify-content: center;">
+                <div id="lightboxLoader" class="spin" style="position: absolute; font-size: 3rem; color: var(--accent-color); z-index: 5;"><ion-icon name="reload-outline"></ion-icon></div>
+                <!-- Image or Video injected here -->
+            </div>
+
             <button id="lightboxNext" class="lightbox-nav-btn" style="right: 20px;"><ion-icon name="arrow-forward-outline"></ion-icon></button>
             <div class="lightbox-actions" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 1rem; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 30px; backdrop-filter: blur(10px);">
                 <button id="lightboxSelectBtn" class="btn btn-secondary" style="border-radius: 20px;"><ion-icon name="ellipse-outline"></ion-icon> Select</button>

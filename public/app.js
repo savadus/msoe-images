@@ -417,16 +417,84 @@ document.addEventListener('DOMContentLoaded', () => {
     window.openLightbox = function(index) {
         currentLightboxIndex = index;
         const lightboxModal = document.getElementById('lightboxModal');
-        const lightboxImg = document.getElementById('lightboxImg');
-        const img = currentImagesList[index];
-        if (img) {
-            lightboxImg.src = img.url;
-            lightboxModal.style.display = 'flex';
+        const container = document.getElementById('lightboxMediaContainer');
+        const loader = document.getElementById('lightboxLoader');
+        const imgObj = currentImagesList[index];
+
+        if (!imgObj) return;
+
+        // Reset Container
+        const oldMedia = container.querySelectorAll('img, video');
+        oldMedia.forEach(m => m.remove());
+        loader.style.display = 'block';
+
+        let fullUrl = imgObj.url;
+        // Optimize Preview (Higher res than gallery but still auto-compressed)
+        if (fullUrl.includes('res.cloudinary.com')) {
+            const parts = fullUrl.split('/upload/');
+            if (parts.length === 2) {
+                fullUrl = `${parts[0]}/upload/w_1600,q_auto,f_auto/${parts[1]}`;
+            }
         }
+
+        if (isVideo(imgObj.url)) {
+            const video = document.createElement('video');
+            video.src = imgObj.url; // Videos load full
+            video.controls = true;
+            video.autoplay = true;
+            video.style.maxWidth = '100%';
+            video.style.maxHeight = '80vh';
+            video.onloadeddata = () => loader.style.display = 'none';
+            container.appendChild(video);
+        } else {
+            const img = document.createElement('img');
+            img.src = fullUrl;
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '80vh';
+            img.style.borderRadius = '8px';
+            img.style.objectFit = 'contain';
+            img.onload = () => loader.style.display = 'none';
+            img.onerror = () => {
+                loader.style.display = 'none';
+                container.innerHTML += '<div style="color:white;text-align:center">Preview Failed</div>';
+            };
+            container.appendChild(img);
+        }
+
+        // Action Buttons Setup
+        const selectBtn = document.getElementById('lightboxSelectBtn');
+        const downloadBtn = document.getElementById('lightboxDownloadBtn');
+        const replyBtn = document.getElementById('lightboxReplyBtn');
+
+        if (selectBtn) {
+            selectBtn.onclick = () => {
+                const card = document.querySelectorAll('.img-card')[index];
+                if (card) {
+                    card.classList.toggle('selected');
+                    updateBatchBar();
+                    selectBtn.innerHTML = card.classList.contains('selected') ? 
+                        '<ion-icon name="checkmark-circle"></ion-icon> Selected' : 
+                        '<ion-icon name="ellipse-outline"></ion-icon> Select';
+                }
+            };
+        }
+
+        if (downloadBtn) {
+            downloadBtn.onclick = () => forceDownload(imgObj.url, imgObj.name);
+        }
+
+        lightboxModal.style.display = 'flex';
     };
 
     const lightboxClose = document.getElementById('lightboxClose');
-    if (lightboxClose) lightboxClose.onclick = () => document.getElementById('lightboxModal').style.display = 'none';
+    if (lightboxClose) {
+        lightboxClose.onclick = () => {
+            document.getElementById('lightboxModal').style.display = 'none';
+            // Stop videos
+            const vid = document.querySelector('#lightboxMediaContainer video');
+            if (vid) vid.pause();
+        };
+    }
 
     const lightboxPrev = document.getElementById('lightboxPrev');
     const lightboxNext = document.getElementById('lightboxNext');
