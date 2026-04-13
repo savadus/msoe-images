@@ -9,13 +9,13 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/header-logo-dark.png",
+      "src": "/lgo1.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/header-logo-dark.png",
+      "src": "/lgo1.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -25,7 +25,7 @@
     {
       "name": "Admin Panel",
       "url": "/admin.html",
-      "icons": [{ "src": "/header-logo-dark.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/lgo1.png", "sizes": "192x192" }]
     }
   ]
 }
