@@ -29,14 +29,27 @@ document.addEventListener('DOMContentLoaded', () => {
     initGallery();
 
     async function initGallery() {
-        showLoader(true);
+        // --- 1. Instant Load Strategy (Stale-While-Revalidate) ---
+        const cached = localStorage.getItem('msoe_folders_cache');
+        if (cached) {
+            try {
+                allFolders = JSON.parse(cached);
+                applyMasterFilter();
+                // We still fetch in background but the user sees folders INSTANTLY
+            } catch(e) { console.error('Cache corrupt', e); }
+        } else {
+            showLoader(true); // Only show loader if no cache
+        }
+
         try {
             const res = await fetch('/api/folders');
             const data = await res.json();
             if (data.success) {
+                // Update state and persistence
                 allFolders = data.folders;
+                localStorage.setItem('msoe_folders_cache', JSON.stringify(allFolders));
                 applyMasterFilter();
-            } else {
+            } else if (!cached) {
                 showEmptyState(true);
             }
         } catch (e) {
