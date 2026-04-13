@@ -336,11 +336,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderMedia(img, index) {
         const container = document.createElement('div');
-        container.className = 'media-container';
+        container.className = 'media-container loading'; // Shimmer effect initially
+        
+        let displayUrl = img.url;
+        // Smart Optimize Cloudinary URLs (Inject transformation for speed)
+        if (displayUrl.includes('res.cloudinary.com')) {
+            const parts = displayUrl.split('/upload/');
+            if (parts.length === 2) {
+                // Request a 400px optimized thumbnail for the gallery
+                displayUrl = `${parts[0]}/upload/w_400,c_fill,q_auto,f_auto/${parts[1]}`;
+            }
+        }
+
         if (isVideo(img.url)) {
             const vid = document.createElement('video');
             vid.src = img.url;
             vid.muted = vid.loop = vid.playsInline = true;
+            vid.onloadeddata = () => container.classList.remove('loading');
+            vid.onerror = () => {
+                container.classList.remove('loading');
+                container.classList.add('error');
+                container.innerHTML = '<ion-icon name="alert-circle-outline"></ion-icon><span style="font-size:10px">Broken Video</span>';
+            };
             container.onmouseenter = () => vid.play();
             container.onmouseleave = () => { vid.pause(); vid.currentTime = 0; };
             container.appendChild(vid);
@@ -350,8 +367,23 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(badge);
         } else {
             const el = document.createElement('img');
-            el.src = img.url;
+            el.src = displayUrl;
             el.loading = 'lazy';
+            el.onload = () => {
+                container.classList.remove('loading');
+                el.classList.add('fade-in');
+            };
+            el.onerror = () => {
+                container.classList.remove('loading');
+                container.classList.add('error');
+                container.style.background = 'rgba(255,255,255,0.02)';
+                container.innerHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:8px; opacity:0.5">
+                        <ion-icon name="image-outline" style="font-size:32px"></ion-icon>
+                        <span style="font-size:10px">Link Expired</span>
+                    </div>
+                `;
+            };
             container.appendChild(el);
         }
         return container;
